@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { AlertTriangle, CircleAlert, Download, FileSpreadsheet, Info, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { brl } from "@/lib/formato";
+import { TabelaNotas } from "./TabelaNotas";
 import { TIPOS } from "@/lib/expedicao/nfe";
 import type { ResultadoCarga } from "@/lib/expedicao/processar";
 import type { Aviso, NivelAviso } from "@/lib/expedicao/tipos";
@@ -18,8 +20,6 @@ interface Props {
   onNova: () => void;
 }
 
-const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const qtd = (v: number) => (v === 0 ? "–" : v.toLocaleString("pt-BR", { maximumFractionDigits: 4 }));
 
 const ORDEM: NivelAviso[] = ["erro", "alerta", "info"];
 const ESTILO_NIVEL: Record<NivelAviso, { caixa: string; icone: typeof Info }> = {
@@ -156,43 +156,7 @@ export function Resultado({ resultado, onBaixar, onNova }: Props) {
         <h2 className="text-sm font-semibold text-foreground">
           Prévia <span className="font-normal text-muted-foreground">— primeiras {previa.length} de {notas.length} notas</span>
         </h2>
-        <div className="card-surface overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-primary text-primary-foreground">
-              <tr>
-                {["NF", "Pedido", "Nº troca", "Tipo", "Destinatário", "Cidade/UF", "Valor", "Vol.", "CX", "FD", "UN", "Frac."].map(
-                  (h) => (
-                    <th key={h} className="whitespace-nowrap px-3 py-2 font-medium">
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {previa.map((n) => (
-                <tr key={n.chave || n.arquivo} className="border-t">
-                  <td className="tabular px-3 py-2">{n.nfTexto}</td>
-                  <td className="tabular px-3 py-2">{n.pedido || <span className="text-destructive">—</span>}</td>
-                  <td className="tabular px-3 py-2">{n.numeroTroca}</td>
-                  <td className="px-3 py-2">{n.tipo}</td>
-                  <td className="max-w-56 truncate px-3 py-2" title={n.destinatario}>
-                    {n.destinatario}
-                  </td>
-                  <td className="whitespace-nowrap px-3 py-2">{n.cidadeUf}</td>
-                  <td className="tabular whitespace-nowrap px-3 py-2 text-right">{brl(n.valor)}</td>
-                  <td className="tabular px-3 py-2 text-right">{n.volumes ?? ""}</td>
-                  {[n.qtdCx, n.qtdFd, n.qtdUn].map((v, i) => (
-                    <td key={i} className={cn("tabular px-3 py-2 text-right", n.fracionado && "bg-warning-soft")}>
-                      {qtd(v)}
-                    </td>
-                  ))}
-                  <td className="px-3 py-2">{n.fracionado ? "Sim" : "Não"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TabelaNotas linhas={previa} />
       </section>
 
       <div className="flex justify-center pb-4">

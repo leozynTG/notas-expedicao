@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileArchive, FileText, Loader2, ShieldCheck, Truck } from "lucide-react";
+import { FileArchive, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropZone } from "@/components/expedicao/DropZone";
 import { Resultado, type Arquivos } from "@/components/expedicao/Resultado";
+import { SalvarCarga } from "@/components/expedicao/SalvarCarga";
+import { AppShell } from "@/components/app/AppShell";
 import { processarCarga, type ResultadoCarga } from "@/lib/expedicao/processar";
 import { baixar, gerarPlanilha, gerarZips } from "@/lib/expedicao/exportar";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Expedição CDLog — Organizar XMLs da carga" },
@@ -86,35 +88,21 @@ function Index() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b bg-card/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 py-4">
-          <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Truck className="size-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground">Expedição CDLog</h1>
-            <p className="text-xs text-muted-foreground">Conferência de notas da carga</p>
-          </div>
-          <span className="ml-auto hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
-            <ShieldCheck className="size-4 text-success" />
-            Os arquivos não saem do seu computador
-          </span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-6xl px-5 py-10">
+    <AppShell>
         {resultado ? (
           <>
             <div className="mb-6 flex flex-wrap items-baseline gap-x-3">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">Resumo da carga</h2>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Resumo da carga</h1>
               <span className="tabular text-sm text-muted-foreground">{zip?.name}</span>
+            </div>
+            <div className="mb-8">
+              <SalvarCarga key={zip?.name} notas={resultado.notas} />
             </div>
             <Resultado resultado={resultado} onBaixar={onBaixar} onNova={nova} />
           </>
         ) : (
           <div className="mx-auto max-w-3xl">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">Organizar XMLs da carga</h2>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Organizar XMLs da carga</h1>
             <p className="mt-2 max-w-xl text-muted-foreground">
               Envie o ZIP com as notas e, se tiver, o mapa analítico dos pedidos. Você recebe a planilha e os XMLs
               separados em dois ZIPs.
@@ -163,7 +151,6 @@ function Index() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+    </AppShell>
   );
 }

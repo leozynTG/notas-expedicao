@@ -31,6 +31,8 @@ use the editor.
 
 ## Project rules
 
-- The app is 100% client-side: never add a backend, database, login or any upload of user files. Why: the user requires that NF-e files never leave the browser.
+- XML/PDF files are parsed only in the browser and never uploaded; Lovable Cloud stores only extracted data (`cargas`, `notas`) behind invite-only email login. Why: the user requires the files themselves never leave the computer.
+- Access = having any row in `user_roles` (`is_member`); admin-only actions (invites) run in `src/lib/usuarios.functions.ts` with the role checked before using the admin client. Why: open sign-up is disabled and RLS must block everyone not invited.
+- Saving a carga goes through the `salvar_carga` SQL function (atomic replace by `numero_carga`); history search goes through `buscar_cargas`. Why: replacement and cross-carga search must be consistent and RLS-checked in one place.
 - Parsing and business rules live in `src/lib/expedicao/` (pure functions, tested in `src/test/expedicao.test.ts`); UI only calls them. Why: rules (classification, ZIP split, picking cross-check) must stay testable without a browser.
 - Browser-only libraries (exceljs, pdfjs-dist) are loaded with dynamic `import()` inside handlers. Why: keeps them out of SSR.

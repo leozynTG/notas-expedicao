@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import type { NotaComArquivo } from "./processar";
+import type { NotaFiscal } from "./nfe";
 
 export const CABECALHO = [
   "NF",
@@ -22,7 +23,28 @@ export const CABECALHO = [
 const LARGURAS = [10, 12, 18, 34, 13, 40, 26, 16, 13, 10, 10, 10, 12, 16, 48];
 const FONTE = { name: "Arial", size: 10 };
 
-export async function gerarPlanilha(notas: NotaComArquivo[]): Promise<Uint8Array> {
+/** Campos da nota que a planilha usa — vale para notas recém-lidas e para notas do histórico. */
+export type LinhaPlanilha = Pick<
+  NotaFiscal,
+  | "nf"
+  | "nfTexto"
+  | "pedido"
+  | "numeroTroca"
+  | "natOp"
+  | "tipo"
+  | "destinatario"
+  | "cidadeUf"
+  | "valor"
+  | "volumes"
+  | "qtdCx"
+  | "qtdFd"
+  | "qtdUn"
+  | "fracionado"
+  | "especie"
+  | "chave"
+>;
+
+export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array> {
   const mod = await import("exceljs");
   const ExcelJS = ((mod as unknown as { default?: typeof mod }).default ?? mod) as typeof mod;
   const wb = new ExcelJS.Workbook();

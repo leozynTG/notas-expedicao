@@ -31,6 +31,8 @@ export interface NotaFiscal {
   cidadeUf: string;
   valor: number;
   pedido: string;
+  /** Número da carga lido de infCpl ("CARGA: 140894"); vazio se não houver. */
+  carga: string;
   infAdFisco: string;
   volumes: number | null;
   especie: string;
@@ -75,6 +77,10 @@ export function grupoZip(natOp: string): GrupoZip {
 
 export function extrairPedido(infCpl: string): string {
   return infCpl.match(/PEDIDO:\s*(\S+)/i)?.[1] ?? "";
+}
+
+export function extrairCarga(infCpl: string): string {
+  return infCpl.match(/CARGA:\s*([^\s,;|]+)/i)?.[1] ?? "";
 }
 
 export function arred(n: number): number {
@@ -165,6 +171,7 @@ export function lerNfe(xml: string, arquivo: string): NotaFiscal {
     cidadeUf: mun || uf ? `${mun}/${uf}` : "",
     valor: num(txt(inf, "total/ICMSTot/vNF")),
     pedido: extrairPedido(infCpl),
+    carga: extrairCarga(infCpl),
     infAdFisco,
     volumes: volumes === null ? null : arred(volumes),
     especie: Array.from(especies).join(", "),
