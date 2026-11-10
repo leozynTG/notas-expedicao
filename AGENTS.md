@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- The app is 100% client-side: never add a backend, database, login or any upload of user files. Why: the user requires that NF-e files never leave the browser.
+- Parsing and business rules live in `src/lib/expedicao/` (pure functions, tested in `src/test/expedicao.test.ts`); UI only calls them. Why: rules (classification, ZIP split, picking cross-check) must stay testable without a browser.
+- Browser-only libraries (exceljs, pdfjs-dist) are loaded with dynamic `import()` inside handlers. Why: keeps them out of SSR.
