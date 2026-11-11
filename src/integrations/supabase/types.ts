@@ -24,6 +24,8 @@ export type Database = {
           notas_sem_volume: number
           numero_carga: string
           outras: number
+          peso_bruto_total_kg: number | null
+          peso_liquido_total_kg: number | null
           processada_em: string
           processada_por: string | null
           processada_por_email: string
@@ -40,6 +42,8 @@ export type Database = {
           notas_sem_volume?: number
           numero_carga: string
           outras?: number
+          peso_bruto_total_kg?: number | null
+          peso_liquido_total_kg?: number | null
           processada_em?: string
           processada_por?: string | null
           processada_por_email?: string
@@ -56,6 +60,8 @@ export type Database = {
           notas_sem_volume?: number
           numero_carga?: string
           outras?: number
+          peso_bruto_total_kg?: number | null
+          peso_liquido_total_kg?: number | null
           processada_em?: string
           processada_por?: string | null
           processada_por_email?: string
@@ -86,6 +92,8 @@ export type Database = {
           nf: string
           numero_troca: string | null
           pedido: string
+          peso_bruto_kg: number | null
+          peso_liquido_kg: number | null
           qtde_cx: number
           qtde_fd: number
           qtde_un: number
@@ -105,6 +113,8 @@ export type Database = {
           nf?: string
           numero_troca?: string | null
           pedido?: string
+          peso_bruto_kg?: number | null
+          peso_liquido_kg?: number | null
           qtde_cx?: number
           qtde_fd?: number
           qtde_un?: number
@@ -124,6 +134,8 @@ export type Database = {
           nf?: string
           numero_troca?: string | null
           pedido?: string
+          peso_bruto_kg?: number | null
+          peso_liquido_kg?: number | null
           qtde_cx?: number
           qtde_fd?: number
           qtde_un?: number
@@ -196,6 +208,8 @@ export type Database = {
           notas_sem_volume: number
           numero_carga: string
           outras: number
+          peso_bruto_total_kg: number | null
+          peso_liquido_total_kg: number | null
           processada_em: string
           processada_por: string | null
           processada_por_email: string

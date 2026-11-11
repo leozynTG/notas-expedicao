@@ -17,10 +17,12 @@ export const CABECALHO = [
   "Qtde UN",
   "Fracionado",
   "Espécie volume",
+  "Peso bruto (kg)",
+  "Peso líquido (kg)",
   "Chave de acesso",
 ] as const;
 
-const LARGURAS = [10, 12, 18, 34, 13, 40, 26, 16, 13, 10, 10, 10, 12, 16, 48];
+const LARGURAS = [10, 12, 18, 34, 13, 40, 26, 16, 13, 10, 10, 10, 12, 16, 15, 16, 48];
 const FONTE = { name: "Arial", size: 10 };
 
 /** Campos da nota que a planilha usa — vale para notas recém-lidas e para notas do histórico. */
@@ -41,6 +43,8 @@ export type LinhaPlanilha = Pick<
   | "qtdUn"
   | "fracionado"
   | "especie"
+  | "pesoBruto"
+  | "pesoLiquido"
   | "chave"
 >;
 
@@ -70,9 +74,11 @@ export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array>
       n.qtdUn,
       n.fracionado ? "Sim" : "Não",
       n.especie,
+      n.pesoBruto,
+      n.pesoLiquido,
       n.chave,
     ]);
-    row.getCell(15).numFmt = "@";
+    row.getCell(17).numFmt = "@";
     if (n.fracionado) {
       for (const c of [10, 11, 12]) {
         row.getCell(c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } };
@@ -100,6 +106,8 @@ export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array>
     soma("L", notas.map((n) => n.qtdUn)),
     { formula: `COUNTIF(M2:M${ultima},"Sim")`, result: notas.filter((n) => n.fracionado).length },
     "",
+    soma("O", notas.map((n) => n.pesoBruto ?? 0)),
+    soma("P", notas.map((n) => n.pesoLiquido ?? 0)),
     "",
   ]);
 
@@ -107,6 +115,7 @@ export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array>
     row.eachCell({ includeEmpty: true }, (cell, nc) => {
       cell.font = { ...FONTE };
       if (nc === 8 && nr > 1) cell.numFmt = "#,##0.00";
+      if ((nc === 15 || nc === 16) && nr > 1) cell.numFmt = "#,##0.000";
     });
   });
   ws.getRow(1).eachCell((cell) => {
@@ -119,7 +128,7 @@ export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array>
     cell.border = { top: { style: "thin" } };
   });
 
-  ws.autoFilter = { from: "A1", to: `O${ultima}` };
+  ws.autoFilter = { from: "A1", to: `Q${ultima}` };
 
   const buf = await wb.xlsx.writeBuffer();
   return new Uint8Array(buf as ArrayBuffer);

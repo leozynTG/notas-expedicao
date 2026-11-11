@@ -36,6 +36,10 @@ export interface NotaFiscal {
   infAdFisco: string;
   volumes: number | null;
   especie: string;
+  /** Soma de transp/vol/pesoL em kg; null se nenhum vol trouxer o campo (nunca 0). */
+  pesoLiquido: number | null;
+  /** Soma de transp/vol/pesoB em kg; null se nenhum vol trouxer o campo (nunca 0). */
+  pesoBruto: number | null;
   qtdCx: number;
   qtdFd: number;
   qtdUn: number;
@@ -138,10 +142,16 @@ export function lerNfe(xml: string, arquivo: string): NotaFiscal {
   const transp = no(inf, "transp");
   const vols = transp ? filhos(transp, "vol") : [];
   let volumes: number | null = null;
+  let pesoLiquido: number | null = null;
+  let pesoBruto: number | null = null;
   const especies = new Set<string>();
   for (const v of vols) {
     const q = txt(v, "qVol");
     if (q !== "") volumes = (volumes ?? 0) + num(q);
+    const pl = txt(v, "pesoL");
+    if (pl !== "") pesoLiquido = (pesoLiquido ?? 0) + num(pl);
+    const pb = txt(v, "pesoB");
+    if (pb !== "") pesoBruto = (pesoBruto ?? 0) + num(pb);
     const e = txt(v, "esp");
     if (e) especies.add(e);
   }
@@ -175,6 +185,8 @@ export function lerNfe(xml: string, arquivo: string): NotaFiscal {
     infAdFisco,
     volumes: volumes === null ? null : arred(volumes),
     especie: Array.from(especies).join(", "),
+    pesoLiquido: pesoLiquido === null ? null : arred(pesoLiquido),
+    pesoBruto: pesoBruto === null ? null : arred(pesoBruto),
     qtdCx,
     qtdFd,
     qtdUn,

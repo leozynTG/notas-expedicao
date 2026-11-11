@@ -35,6 +35,9 @@ export interface CargaPayload {
   outras: number;
   notas_fracionadas: number;
   notas_sem_volume: number;
+  /** Soma dos pesos das notas que trazem o campo; null se nenhuma trouxer. */
+  peso_bruto_total_kg: number | null;
+  peso_liquido_total_kg: number | null;
 }
 
 export interface NotaPayload {
@@ -52,6 +55,8 @@ export interface NotaPayload {
   qtde_un: number;
   fracionado: boolean;
   especie_volume: string;
+  peso_bruto_kg: number | null;
+  peso_liquido_kg: number | null;
   chave_acesso: string;
 }
 
@@ -71,8 +76,17 @@ type NotaParaSalvar = Pick<
   | "qtdUn"
   | "fracionado"
   | "especie"
+  | "pesoBruto"
+  | "pesoLiquido"
   | "chave"
 >;
+
+/** Soma ignorando notas sem o campo; null quando nenhuma nota tem valor. */
+export function somaPesos(valores: (number | null)[]): number | null {
+  const presentes = valores.filter((v): v is number => v !== null);
+  if (presentes.length === 0) return null;
+  return Math.round(presentes.reduce((s, v) => s + v, 0) * 10000) / 10000;
+}
 
 /** Monta só os dados extraídos (nada do XML/PDF em si) para salvar no histórico. */
 export function montarCarga(
@@ -92,6 +106,8 @@ export function montarCarga(
       outras: conta("Outra saída") + conta("Outro"),
       notas_fracionadas: notas.filter((n) => n.fracionado).length,
       notas_sem_volume: notas.filter((n) => n.volumes === null).length,
+      peso_bruto_total_kg: somaPesos(notas.map((n) => n.pesoBruto)),
+      peso_liquido_total_kg: somaPesos(notas.map((n) => n.pesoLiquido)),
     },
     notas: notas.map((n) => ({
       nf: n.nfTexto,
@@ -108,6 +124,8 @@ export function montarCarga(
       qtde_un: n.qtdUn,
       fracionado: n.fracionado,
       especie_volume: n.especie,
+      peso_bruto_kg: n.pesoBruto,
+      peso_liquido_kg: n.pesoLiquido,
       chave_acesso: n.chave,
     })),
   };
@@ -128,10 +146,13 @@ export interface NotaSalva {
   qtde_un: number | string;
   fracionado: boolean;
   especie_volume: string;
+  peso_bruto_kg?: number | string | null;
+  peso_liquido_kg?: number | string | null;
   chave_acesso: string;
 }
 
 const numero = (v: number | string) => (typeof v === "number" ? v : Number(v) || 0);
+const numeroOuNulo = (v: number | string | null | undefined) => (v === null || v === undefined ? null : numero(v));
 
 /** Converte notas do histórico de volta para linhas da planilha, ordenadas por NF. */
 export function linhasDoHistorico(notas: NotaSalva[]): LinhaPlanilha[] {
@@ -154,6 +175,8 @@ export function linhasDoHistorico(notas: NotaSalva[]): LinhaPlanilha[] {
         qtdUn: numero(n.qtde_un),
         fracionado: n.fracionado,
         especie: n.especie_volume,
+        pesoBruto: numeroOuNulo(n.peso_bruto_kg),
+        pesoLiquido: numeroOuNulo(n.peso_liquido_kg),
         chave: n.chave_acesso,
       };
     })
