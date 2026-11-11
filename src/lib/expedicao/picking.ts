@@ -32,7 +32,10 @@ export interface LeituraPickings {
 }
 
 const RE_PEDIDO = /PEDIDO N\S+:\s*\d+-(\w+)\s*\|\s*(.+)/gi;
-const RE_CNPJ = /CNPJ\.*:\s*([\d./-]+)/i;
+/** Client document: "CNPJ....:" (or "CPF....:") with two or more dots. The issuer header uses a single "CNPJ:". */
+const RE_DOC_CLIENTE = /(?:CNPJ|CPF)\s*\.{2,}\s*:\s*([\d./-]+)/gi;
+/** Issuer (Ninfa) CNPJ, never a client. */
+export const CNPJ_EMISSOR = "78099777000142";
 /** Picking number region: top 25% of the page, right half. */
 const TOPO_MAX = 0.25;
 const ESQUERDA_MIN = 0.5;
@@ -86,8 +89,25 @@ function adicionar(lista: Picking[], vistos: Map<string, Picking>, p: Picking) {
   lista.push(p);
 }
 
+/**
+ * Client CNPJ/CPF (digits only) of one picking block. Only "CNPJ....:" / "CPF....:" count;
+ * the issuer CNPJ is always skipped, and the one on the "Nome Cliente:" line wins.
+ */
+export function documentoCliente(texto: string): string {
+  let primeiro = "";
+  for (const linha of texto.split(/\r?\n/)) {
+    for (const m of linha.matchAll(RE_DOC_CLIENTE)) {
+      const doc = soDigitos(m[1] ?? "");
+      if (!doc || doc === CNPJ_EMISSOR) continue;
+      if (/Nome\s+Cliente\s*:/i.test(linha)) return doc;
+      primeiro ||= doc;
+    }
+  }
+  return primeiro;
+}
+
 function pedidosDoTexto(texto: string, numero: string): Picking[] {
-  const cnpj = soDigitos(texto.match(RE_CNPJ)?.[1] ?? "");
+  const cnpj = documentoCliente(texto);
   return Array.from(texto.matchAll(RE_PEDIDO), (m) => ({
     numero,
     pedido: (m[1] ?? "").toUpperCase(),
@@ -166,7 +186,7 @@ export function cruzarPickings(
         avisos.push({
           categoria: "CNPJ divergente",
           nivel: "erro",
-          mensagem: `NF ${nota.nfTexto} (pedido ${nota.pedido}): destinatário ${formatarDoc(nota.documento)}, picking ${p.numero || "?"} tem ${formatarDoc(p.cnpj)}.`,
+          mensagem: `NF ${nota.nfTexto} (pedido ${nota.pedido}): cliente no picking ${p.numero || "?"} = ${formatarDoc(p.cnpj)}; destinatário da NF = ${formatarDoc(nota.documento)}.`,
         });
       }
     }

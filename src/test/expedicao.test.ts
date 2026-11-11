@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { classificar, grupoZip, lerNfe } from "@/lib/expedicao/nfe";
-import { lerPickings, lerPickingsPdf, lerPickingsTexto, numeroNoTopo, type PaginaPdf } from "@/lib/expedicao/picking";
+import { documentoCliente, lerPickings, lerPickingsPdf, lerPickingsTexto, numeroNoTopo, type PaginaPdf } from "@/lib/expedicao/picking";
 import { processarCarga } from "@/lib/expedicao/processar";
 import { gerarPlanilha, gerarZips } from "@/lib/expedicao/exportar";
 
@@ -117,7 +117,11 @@ describe("pickings", () => {
     expect(nf(1).numeroTroca).toBe("");
     expect(nf(2).numeroTroca).toBe("778899");
     expect(nf(3).numeroTroca).toBe("778899");
-    expect(r.avisos.some((a) => a.categoria === "CNPJ divergente" && a.mensagem.includes("NF 3"))).toBe(true);
+    const divergentes = r.avisos.filter((a) => a.categoria === "CNPJ divergente");
+    expect(divergentes).toHaveLength(1);
+    expect(divergentes[0]!.mensagem).toContain("NF 3");
+    expect(divergentes[0]!.mensagem).toContain("99.888.777/0001-66");
+    expect(divergentes[0]!.mensagem).toContain("11.222.333/0001-81");
     expect(r.avisos.some((a) => a.categoria === "Troca sem picking" && a.mensagem.includes("NF 4"))).toBe(true);
     expect(r.resumo.trocasSemPicking).toBe(1);
   });
@@ -135,6 +139,47 @@ const linhaPedido = (pedido: string, tipo: string, topo: number): [string, numbe
   ["|", 200, topo],
   [tipo, 210, topo],
 ];
+
+describe("CNPJ do cliente no picking", () => {
+  it("ignora o CNPJ da Ninfa no cabeçalho (\"CNPJ:\") e lê o \"CNPJ....:\" do cliente", () => {
+    const bloco = "NINFA INDUSTRIA\nCNPJ: 78.099.777/0001-42\nNome Cliente: MERCADO X CNPJ....: 45.914.566/0001-67";
+    expect(documentoCliente(bloco)).toBe("45914566000167");
+  });
+
+  it("nunca usa 78.099.777/0001-42, mesmo no formato com pontos", () => {
+    expect(documentoCliente("CNPJ....: 78.099.777/0001-42")).toBe("");
+  });
+
+  it("com mais de uma ocorrência, usa a da linha Nome Cliente:", () => {
+    const bloco = "TRANSP CNPJ....: 11.111.111/0001-11\nNome Cliente: FULANO CNPJ....: 45.914.566/0001-67";
+    expect(documentoCliente(bloco)).toBe("45914566000167");
+  });
+
+  it("aceita CPF do cliente pessoa física", () => {
+    expect(documentoCliente("Nome Cliente: JOSE CPF....: 123.456.789-09")).toBe("12345678909");
+  });
+
+  it("não avisa divergência quando só a pontuação difere, e avisa com CPF diferente", async () => {
+    const zip = new JSZip();
+    zip.file("1.xml", xml({ nNF: "1", natOp: "OUTRA SAIDA", fisco: "TROCA", cnpj: "45914566000167" }));
+    zip.file("2.xml", xml({ nNF: "2", natOp: "OUTRA SAIDA", fisco: "TROCA", cnpj: "12345678000199" }));
+    const mapa = `CNPJ: 78.099.777/0001-42
+IMPRESSO DIA 1
+10
+Nome Cliente: A CNPJ....: 45.914.566/0001-67
+PEDIDO NUMERO: 01-AAJM1 | TROCA
+IMPRESSO DIA 1
+11
+Nome Cliente: B CPF....: 123.456.789-09
+PEDIDO NUMERO: 01-AAJM2 | TROCA
+`;
+    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), lerPickingsTexto(mapa));
+    const divergentes = r.avisos.filter((a) => a.categoria === "CNPJ divergente");
+    expect(divergentes).toHaveLength(1);
+    expect(divergentes[0]!.mensagem).toContain("NF 2");
+    expect(divergentes[0]!.mensagem).toContain("123.456.789-09");
+  });
+});
 
 describe("pickings no PDF (por coordenadas)", () => {
   it("número = só dígitos (1 a 4) no canto superior direito, o mais acima e mais à direita", () => {
