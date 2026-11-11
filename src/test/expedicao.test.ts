@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { classificar, grupoZip, lerNfe } from "@/lib/expedicao/nfe";
-import { lerPickings } from "@/lib/expedicao/picking";
+import { lerPickings, lerPickingsPdf, lerPickingsTexto, numeroNoTopo, type PaginaPdf } from "@/lib/expedicao/picking";
 import { processarCarga } from "@/lib/expedicao/processar";
 import { gerarPlanilha, gerarZips } from "@/lib/expedicao/exportar";
 
@@ -111,7 +111,7 @@ describe("pickings", () => {
     zip.file("3.xml", xml({ nNF: "3", natOp: "OUTRA SAIDA", fisco: "TROCA" }));
     zip.file("4.xml", xml({ nNF: "4", natOp: "OUTRA SAIDA", fisco: "TROCA" }));
     zip.file("leia-me.txt", "ignorar");
-    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), MAPA);
+    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), lerPickingsTexto(MAPA));
     const nf = (n: number) => r.notas.find((x) => x.nf === n)!;
     expect(r.notas).toHaveLength(4);
     expect(nf(1).numeroTroca).toBe("");
@@ -120,6 +120,73 @@ describe("pickings", () => {
     expect(r.avisos.some((a) => a.categoria === "CNPJ divergente" && a.mensagem.includes("NF 3"))).toBe(true);
     expect(r.avisos.some((a) => a.categoria === "Troca sem picking" && a.mensagem.includes("NF 4"))).toBe(true);
     expect(r.resumo.trocasSemPicking).toBe(1);
+  });
+});
+
+/** Builds a 600x800 page; pieces are given as [text, x, topo]. Their order is shuffled on purpose. */
+function pagina(trechos: [string, number, number][]): PaginaPdf {
+  const t = trechos.map(([str, x, topo]) => ({ str, x, topo, largura: str.length * 5 }));
+  return { largura: 600, altura: 800, trechos: [...t].reverse() };
+}
+
+const linhaPedido = (pedido: string, tipo: string, topo: number): [string, number, number][] => [
+  ["PEDIDO N\uFFFDMERO:", 40, topo],
+  [`01-${pedido}`, 130, topo],
+  ["|", 200, topo],
+  [tipo, 210, topo],
+];
+
+describe("pickings no PDF (por coordenadas)", () => {
+  it("número = só dígitos (1 a 4) no canto superior direito, o mais acima e mais à direita", () => {
+    const p = pagina([
+      ["9999", 50, 20], // top, but on the left
+      ["12345", 520, 10], // 5 digits
+      ["45", 480, 30],
+      ["47", 540, 30], // same height as 45, more to the right
+      ["7", 550, 500], // right, but low on the page
+      ["IMPRESSO DIA 10/11/2026", 300, 15],
+    ]);
+    expect(numeroNoTopo(p)).toBe("47");
+  });
+
+  it("lê pedido e tipo com acento corrompido, sem depender da ordem do texto", () => {
+    const r = lerPickingsPdf([pagina([["812", 540, 20], ...linhaPedido("AAJM2", "TROCA ARMAZENAMENTO", 300)])]);
+    expect(r.semTexto).toBe(false);
+    expect(r.pickings).toEqual([
+      { numero: "812", pedido: "AAJM2", descricao: "TROCA ARMAZENAMENTO", cnpj: "" },
+    ]);
+  });
+
+  it("picking em várias páginas não conta o mesmo pedido duas vezes", () => {
+    const r = lerPickingsPdf([
+      pagina([["812", 540, 20], ...linhaPedido("AAJM2", "TROCA", 300)]),
+      pagina([["812", 540, 20], ...linhaPedido("AAJM2", "TROCA", 100)]),
+      pagina([["ITEM 40", 40, 100]]), // continuation page without number or pedido
+      pagina([["813", 540, 20], ...linhaPedido("AAJM3", "TROCA", 300)]),
+    ]);
+    expect(r.pickings.map((p) => `${p.numero}-${p.pedido}`)).toEqual(["812-AAJM2", "813-AAJM3"]);
+  });
+
+  it("PDF sem nenhum texto (escaneado) é marcado como semTexto e gera erro", async () => {
+    const leitura = lerPickingsPdf([pagina([]), pagina([])]);
+    expect(leitura.semTexto).toBe(true);
+    const zip = new JSZip();
+    zip.file("1.xml", xml({ nNF: "1", natOp: "VENDA" }));
+    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), leitura);
+    expect(r.avisos.some((a) => a.categoria === "Mapa analítico sem texto" && a.nivel === "erro")).toBe(true);
+  });
+
+  it("PDF com texto mas sem pedido gera o aviso de nenhum pedido encontrado", async () => {
+    const leitura = lerPickingsPdf([pagina([["RELATORIO QUALQUER", 40, 40]])]);
+    const zip = new JSZip();
+    zip.file("1.xml", xml({ nNF: "1", natOp: "VENDA" }));
+    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), leitura);
+    expect(r.avisos.some((a) => a.categoria === "Nenhum pedido no mapa analítico")).toBe(true);
+  });
+
+  it("o .txt também não repete o mesmo número + pedido", () => {
+    const txt = `IMPRESSO DIA 1\n55\nPEDIDO NUMERO: 01-X1 | TROCA\nIMPRESSO DIA 1\n55\nPEDIDO NUMERO: 01-X1 | TROCA\n`;
+    expect(lerPickingsTexto(txt).pickings).toHaveLength(1);
   });
 });
 

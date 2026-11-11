@@ -39,6 +39,71 @@ function Indicador({ rotulo, valor, destaque }: { rotulo: string; valor: number 
   );
 }
 
+function ConferenciaPickings({
+  mapa,
+  pedidosNf,
+}: {
+  mapa: NonNullable<ResultadoCarga["mapa"]>;
+  pedidosNf: Set<string>;
+}) {
+  const arquivo = mapa.origem === "pdf" ? "PDF" : ".txt";
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold text-foreground">
+        Conferência dos pickings{" "}
+        <span className="font-normal text-muted-foreground">
+          — {mapa.pickings.length} par(es) lido(s) do {arquivo}
+        </span>
+      </h2>
+      {mapa.semTexto ? (
+        <p role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive-soft px-4 py-3 text-sm text-destructive">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" />
+          {mapa.origem === "pdf"
+            ? "Este PDF não tem texto: parece ser uma digitalização (imagem). Os pickings não puderam ser lidos. Gere o PDF de novo pelo sistema ou envie o .txt."
+            : "O arquivo .txt está vazio. Os pickings não puderam ser lidos."}
+        </p>
+      ) : mapa.pickings.length === 0 ? (
+        <p role="alert" className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive-soft px-4 py-3 text-sm text-destructive">
+          <CircleAlert className="mt-0.5 size-4 shrink-0" />
+          Nenhum pedido foi encontrado no mapa analítico. Confira se é o arquivo certo.
+        </p>
+      ) : (
+        <div className="card-surface max-h-96 overflow-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="sticky top-0 bg-primary text-primary-foreground">
+              <tr>
+                {["Nº picking", "Pedido", "Tipo", "Na carga"].map((h) => (
+                  <th key={h} className="whitespace-nowrap px-3 py-2 font-medium">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {mapa.pickings.map((p) => (
+                <tr key={`${p.numero}|${p.pedido}`} className="border-t">
+                  <td className="tabular px-3 py-2">
+                    {p.numero || <span className="text-destructive">não lido</span>}
+                  </td>
+                  <td className="tabular px-3 py-2">{p.pedido}</td>
+                  <td className="px-3 py-2">{p.descricao}</td>
+                  <td className="px-3 py-2">
+                    {pedidosNf.has(p.pedido) ? (
+                      <span className="text-success">Sim</span>
+                    ) : (
+                      <span className="text-muted-foreground">Sem NF</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function Resultado({ resultado, onBaixar, onNova }: Props) {
   const { resumo, notas, avisos } = resultado;
 
@@ -53,6 +118,7 @@ export function Resultado({ resultado, onBaixar, onNova }: Props) {
   }, [avisos]);
 
   const previa = notas.slice(0, 15);
+  const pedidosNf = useMemo(() => new Set(notas.map((n) => n.pedido.toUpperCase()).filter(Boolean)), [notas]);
 
   return (
     <div className="space-y-8">
@@ -79,12 +145,9 @@ export function Resultado({ resultado, onBaixar, onNova }: Props) {
             </span>
           ))}
         </div>
-        {resultado.pickingEnviado && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            {resultado.pickingsLidos} pedido(s) reconhecido(s) no mapa analítico.
-          </p>
-        )}
       </section>
+
+      {resultado.mapa && <ConferenciaPickings mapa={resultado.mapa} pedidosNf={pedidosNf} />}
 
       <section className="grid gap-3 md:grid-cols-3">
         <Button variant="download" size="tile" onClick={() => onBaixar("planilha")}>

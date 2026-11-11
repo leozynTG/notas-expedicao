@@ -1,6 +1,6 @@
 import JSZip from "jszip";
 import { lerNfe, XmlIgnorado, TIPOS, type NotaFiscal, type Tipo } from "./nfe";
-import { cruzarPickings, lerPickings } from "./picking";
+import { cruzarPickings, type LeituraPickings, type Picking } from "./picking";
 import type { Aviso } from "./tipos";
 
 export interface NotaComArquivo extends NotaFiscal {
@@ -23,8 +23,8 @@ export interface ResultadoCarga {
   notas: NotaComArquivo[];
   avisos: Aviso[];
   resumo: Resumo;
-  pickingEnviado: boolean;
-  pickingsLidos: number;
+  /** null when the analytical map was not sent. */
+  mapa: { origem: LeituraPickings["origem"]; semTexto: boolean; pickings: Picking[] } | null;
 }
 
 function decodificar(bytes: Uint8Array): string {
@@ -55,7 +55,7 @@ export function resumir(notas: NotaFiscal[]): Resumo {
 
 export async function processarCarga(
   zipData: ArrayBuffer | Uint8Array,
-  pickingTexto: string | null,
+  leitura: LeituraPickings | null,
 ): Promise<ResultadoCarga> {
   const zip = await JSZip.loadAsync(zipData);
   const avisos: Aviso[] = [];
@@ -115,15 +115,30 @@ export async function processarCarga(
     (a, b) => (a.nf ?? Number.MAX_SAFE_INTEGER) - (b.nf ?? Number.MAX_SAFE_INTEGER),
   );
 
-  let pickingsLidos = 0;
-  if (pickingTexto !== null) {
-    const pickings = lerPickings(pickingTexto);
-    pickingsLidos = pickings.length;
-    if (pickings.length === 0) {
+  if (leitura !== null) {
+    const { pickings } = leitura;
+    if (leitura.semTexto) {
       avisos.push({
-        categoria: "Pickings",
+        categoria: "Mapa analítico sem texto",
         nivel: "erro",
-        mensagem: "Nenhum picking foi reconhecido no arquivo do mapa analítico.",
+        mensagem:
+          leitura.origem === "pdf"
+            ? "O PDF do mapa analítico não tem texto (parece escaneado). Gere o PDF de novo pelo sistema ou envie o .txt."
+            : "O arquivo .txt do mapa analítico está vazio.",
+      });
+    } else if (pickings.length === 0) {
+      avisos.push({
+        categoria: "Nenhum pedido no mapa analítico",
+        nivel: "erro",
+        mensagem: 'Nenhuma linha "PEDIDO NÚMERO: 01-… | …" foi encontrada no mapa analítico.',
+      });
+    }
+    const semNumero = pickings.filter((p) => !p.numero);
+    if (semNumero.length > 0) {
+      avisos.push({
+        categoria: "Picking sem número",
+        nivel: "alerta",
+        mensagem: `Pedido(s) ${semNumero.map((p) => p.pedido).join(", ")}: o número do picking não foi encontrado no topo da página.`,
       });
     }
     const cruzado = cruzarPickings(notas, pickings);
@@ -138,5 +153,6 @@ export async function processarCarga(
     });
   }
 
-  return { notas, avisos, resumo: resumir(notas), pickingEnviado: pickingTexto !== null, pickingsLidos };
+  const mapa = leitura && { origem: leitura.origem, semTexto: leitura.semTexto, pickings: leitura.pickings };
+  return { notas, avisos, resumo: resumir(notas), mapa };
 }

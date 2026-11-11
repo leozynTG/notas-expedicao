@@ -8,6 +8,7 @@ import { SalvarCarga } from "@/components/expedicao/SalvarCarga";
 import { AppShell } from "@/components/app/AppShell";
 import { processarCarga, type ResultadoCarga } from "@/lib/expedicao/processar";
 import { baixar, gerarPlanilha, gerarZips } from "@/lib/expedicao/exportar";
+import { lerPickingsPdf, lerPickingsTexto, type LeituraPickings } from "@/lib/expedicao/picking";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -47,16 +48,16 @@ function Index() {
     setErro(null);
     setProcessando(true);
     try {
-      let textoMapa: string | null = null;
+      let leitura: LeituraPickings | null = null;
       if (mapa) {
         if (mapa.name.toLowerCase().endsWith(".pdf")) {
-          const { extrairTextoPdf } = await import("@/lib/expedicao/pdf-texto");
-          textoMapa = await extrairTextoPdf(mapa);
+          const { lerPaginasPdf } = await import("@/lib/expedicao/pdf-texto");
+          leitura = lerPickingsPdf(await lerPaginasPdf(mapa));
         } else {
-          textoMapa = await mapa.text();
+          leitura = lerPickingsTexto(await mapa.text());
         }
       }
-      const r = await processarCarga(await zip.arrayBuffer(), textoMapa);
+      const r = await processarCarga(await zip.arrayBuffer(), leitura);
       const [planilha, zips] = await Promise.all([gerarPlanilha(r.notas), gerarZips(r.notas)]);
       setArquivos({ planilha, ...zips });
       setResultado(r);
