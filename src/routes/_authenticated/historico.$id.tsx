@@ -20,7 +20,7 @@ import { TabelaNotas } from "@/components/expedicao/TabelaNotas";
 import { supabase } from "@/integrations/supabase/client";
 import { cargaQuery } from "@/lib/historico-queries";
 import { linhasDoHistorico } from "@/lib/expedicao/historico";
-import { brl, dataHora } from "@/lib/formato";
+import { brl, dataHora, kg } from "@/lib/formato";
 import { cn } from "@/lib/utils";
 
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -180,11 +180,13 @@ function DetalheCarga() {
         </div>
       </div>
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Indicador rotulo="Notas" valor={carga.total_notas} />
         <Indicador rotulo="Fracionadas" valor={carga.notas_fracionadas} destaque={carga.notas_fracionadas > 0} />
         <Indicador rotulo="Sem volume no XML" valor={carga.notas_sem_volume} destaque={carga.notas_sem_volume > 0} />
         <Indicador rotulo="Valor total" valor={brl(valorTotal)} />
+        <Indicador rotulo="Peso bruto" valor={kg(carga.peso_bruto_total_kg)} />
+        <Indicador rotulo="Peso líquido" valor={kg(carga.peso_liquido_total_kg)} />
       </section>
 
       <div className="mt-4 flex flex-wrap gap-2">

@@ -146,13 +146,13 @@ export interface NotaSalva {
   qtde_un: number | string;
   fracionado: boolean;
   especie_volume: string;
-  peso_bruto_kg?: number | string | null;
-  peso_liquido_kg?: number | string | null;
+  peso_bruto_kg: number | string | null;
+  peso_liquido_kg: number | string | null;
   chave_acesso: string;
 }
 
 const numero = (v: number | string) => (typeof v === "number" ? v : Number(v) || 0);
-const numeroOuNulo = (v: number | string | null | undefined) => (v === null || v === undefined ? null : numero(v));
+const numeroOuNulo = (v: number | string | null) => (v === null ? null : numero(v));
 
 /** Converte notas do histórico de volta para linhas da planilha, ordenadas por NF. */
 export function linhasDoHistorico(notas: NotaSalva[]): LinhaPlanilha[] {

@@ -17,6 +17,8 @@ const base = {
   qtdUn: 0,
   fracionado: false,
   especie: "CAIXA",
+  pesoBruto: 10.5 as number | null,
+  pesoLiquido: 9.25 as number | null,
   chave: "123",
 };
 
@@ -56,7 +58,27 @@ describe("dados salvos no histórico", () => {
       outras: 1,
       notas_fracionadas: 1,
       notas_sem_volume: 1,
+      peso_bruto_total_kg: 63,
+      peso_liquido_total_kg: 55.5,
     });
+  });
+  it("totais de peso ignoram notas sem peso e ficam nulos se nenhuma tiver", () => {
+    const { carga, notas } = montarCarga("1", [base, { ...base, pesoBruto: null, pesoLiquido: null }]);
+    expect(carga.peso_bruto_total_kg).toBe(10.5);
+    expect(carga.peso_liquido_total_kg).toBe(9.25);
+    expect(notas[1]?.peso_bruto_kg).toBeNull();
+    expect(notas[1]?.peso_liquido_kg).toBeNull();
+    const vazia = montarCarga("2", [{ ...base, pesoBruto: null, pesoLiquido: null }]).carga;
+    expect(vazia.peso_bruto_total_kg).toBeNull();
+    expect(vazia.peso_liquido_total_kg).toBeNull();
+  });
+  it("peso salvo volta do histórico como número, e ausente continua nulo", () => {
+    const { notas } = montarCarga("1", [base, { ...base, nfTexto: "11", pesoBruto: null }]);
+    const linhas = linhasDoHistorico(
+      notas.map((n) => ({ ...n, peso_bruto_kg: n.peso_bruto_kg === null ? null : String(n.peso_bruto_kg) })),
+    );
+    expect(linhas[0]?.pesoBruto).toBe(10.5);
+    expect(linhas[1]?.pesoBruto).toBeNull();
   });
   it("Nº troca vazio vira nulo e volume ausente continua nulo", () => {
     const { notas } = montarCarga("1", [{ ...base, volumes: null }, { ...base, numeroTroca: "555" }]);

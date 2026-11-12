@@ -12,6 +12,7 @@ interface Opts {
   cpl?: string;
   cnpj?: string;
   qVol?: string | null;
+  pesos?: string;
   itens?: [string, string][];
 }
 
@@ -19,7 +20,7 @@ function xml(o: Opts): string {
   const itens = (o.itens ?? [["CX", "10.0000"]])
     .map(([u, q], i) => `<det nItem="${i + 1}"><prod><uCom>${u}</uCom><qCom>${q}</qCom></prod></det>`)
     .join("");
-  const vol = o.qVol === null ? "<vol><esp>CAIXA</esp></vol>" : `<vol><qVol>${o.qVol ?? "5"}</qVol><esp>CAIXA</esp></vol>`;
+  const vol = o.qVol === null ? "<vol><esp>CAIXA</esp></vol>" : `<vol><qVol>${o.qVol ?? "5"}</qVol><esp>CAIXA</esp>${o.pesos ?? ""}</vol>`;
   return `<?xml version="1.0" encoding="UTF-8"?><nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00"><NFe><infNFe Id="NFe352511000000000000005500100${o.nNF.padStart(9, "0")}10000000" versao="4.00">
 <ide><natOp>${o.natOp}</natOp><nNF>${o.nNF}</nNF></ide>
 <emit><xNome>EMITENTE LTDA</xNome></emit>
@@ -66,6 +67,14 @@ describe("leitura do XML", () => {
   });
   it("volume ausente fica vazio (null), nunca 0", () => {
     expect(lerNfe(xml({ nNF: "1", natOp: "VENDA", qVol: null }), "a.xml").volumes).toBeNull();
+  });
+  it("lê pesoL e pesoB em kg com ponto decimal; ausentes ficam null, nunca 0", () => {
+    const n = lerNfe(xml({ nNF: "1", natOp: "VENDA", pesos: "<pesoL>1.109</pesoL><pesoB>1.250</pesoB>" }), "a.xml");
+    expect(n.pesoLiquido).toBe(1.109);
+    expect(n.pesoBruto).toBe(1.25);
+    const sem = lerNfe(xml({ nNF: "2", natOp: "VENDA" }), "b.xml");
+    expect(sem.pesoLiquido).toBeNull();
+    expect(sem.pesoBruto).toBeNull();
   });
   it("soma qCom por unidade e marca fracionado quando a soma tem decimal", () => {
     const n = lerNfe(
@@ -253,7 +262,7 @@ describe("saídas", () => {
 
   it("planilha tem TOTAL com SUM/COUNTIF e chave como texto", async () => {
     const zip = new JSZip();
-    zip.file("2.xml", xml({ nNF: "2", natOp: "VENDA", itens: [["CX", "1.5"]] }));
+    zip.file("2.xml", xml({ nNF: "2", natOp: "VENDA", itens: [["CX", "1.5"]], pesos: "<pesoL>1.109</pesoL><pesoB>1.250</pesoB>" }));
     zip.file("1.xml", xml({ nNF: "1", natOp: "VENDA", qVol: null }));
     const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), null);
     const bytes = await gerarPlanilha(r.notas);
@@ -265,7 +274,17 @@ describe("saídas", () => {
     expect(ws.getCell("I2").value).toBeNull();
     expect(ws.getCell("H4").value).toMatchObject({ formula: "SUM(H2:H3)" });
     expect(ws.getCell("M4").value).toMatchObject({ formula: 'COUNTIF(M2:M3,"Sim")' });
-    expect(typeof ws.getCell("O2").value).toBe("string");
-    expect(ws.getCell("O2").numFmt).toBe("@");
+    expect(ws.getCell("N1").value).toBe("Espécie volume");
+    expect(ws.getCell("O1").value).toBe("Peso bruto (kg)");
+    expect(ws.getCell("P1").value).toBe("Peso líquido (kg)");
+    expect(ws.getCell("Q1").value).toBe("Chave de acesso");
+    expect(ws.getCell("O2").value).toBeNull();
+    expect(ws.getCell("P2").value).toBeNull();
+    expect(ws.getCell("O3").value).toBe(1.25);
+    expect(ws.getCell("P3").value).toBe(1.109);
+    expect(ws.getCell("O4").value).toMatchObject({ formula: "SUM(O2:O3)" });
+    expect(ws.getCell("P4").value).toMatchObject({ formula: "SUM(P2:P3)" });
+    expect(typeof ws.getCell("Q2").value).toBe("string");
+    expect(ws.getCell("Q2").numFmt).toBe("@");
   });
 });
