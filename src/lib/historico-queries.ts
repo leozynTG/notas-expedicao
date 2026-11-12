@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { lerDashboard } from "@/lib/expedicao/dashboard";
 
 export const cargasQuery = (termo: string) =>
   queryOptions({
@@ -32,5 +33,18 @@ export const cargaQuery = (id: string) =>
         if (!data || data.length < LOTE) break;
       }
       return { carga, notas };
+    },
+  });
+
+export const dashboardQuery = (de: string | null, ate: string | null) =>
+  queryOptions({
+    queryKey: ["cargas", "dashboard", de, ate],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("dashboard_cargas", {
+        _de: de as string,
+        _ate: ate as string,
+      });
+      if (error) throw error;
+      return lerDashboard(data);
     },
   });

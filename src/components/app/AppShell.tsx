@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { History, LogOut, PackagePlus, ShieldAlert, ShieldCheck, Truck, Users } from "lucide-react";
+import { History, LayoutDashboard, LogOut, PackagePlus, ShieldAlert, ShieldCheck, Truck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEu } from "@/hooks/use-eu";
@@ -50,6 +50,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
             <Link to="/historico" className={ABA} activeProps={{ className: ABA_ATIVA }}>
               <History className="size-4" /> Histórico
+            </Link>
+            <Link to="/dashboard" className={ABA} activeProps={{ className: ABA_ATIVA }}>
+              <LayoutDashboard className="size-4" /> Dashboard
             </Link>
             {eu?.isAdmin && (
               <Link to="/usuarios" className={ABA} activeProps={{ className: ABA_ATIVA }}>

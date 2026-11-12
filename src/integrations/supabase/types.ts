@@ -224,6 +224,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      dashboard_cargas: { Args: { _ate: string; _de: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

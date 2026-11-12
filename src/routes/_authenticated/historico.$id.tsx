@@ -115,7 +115,10 @@ function DetalheCarga() {
     }
     toast.success(`Carga ${carga.numero_carga} excluída.`);
     queryClient.removeQueries({ queryKey: ["cargas", "detalhe", carga.id] });
-    await queryClient.invalidateQueries({ queryKey: ["cargas", "lista"] });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["cargas", "lista"] }),
+      queryClient.invalidateQueries({ queryKey: ["cargas", "dashboard"] }),
+    ]);
     navigate({ to: "/historico", replace: true });
   }
 
