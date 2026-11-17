@@ -5,7 +5,7 @@ import { linhasDoHistorico, montarCarga, sugerirNumeroCarga } from "@/lib/expedi
 const base = {
   nfTexto: "10",
   pedido: "P1",
-  numeroTroca: "",
+  numeroPicking: "",
   natOp: "VENDA",
   tipo: "Venda" as const,
   destinatario: "CLIENTE",
@@ -41,7 +41,7 @@ describe("dados salvos no histórico", () => {
   it("conta notas por tipo, fracionadas e sem volume", () => {
     const { carga } = montarCarga(" 140894 ", [
       base,
-      { ...base, tipo: "Troca", numeroTroca: "555" },
+      { ...base, tipo: "Troca", numeroPicking: "555" },
       { ...base, tipo: "Bonificação", fracionado: true },
       { ...base, tipo: "Brinde", volumes: null },
       { ...base, tipo: "Amostra" },
@@ -81,7 +81,7 @@ describe("dados salvos no histórico", () => {
     expect(linhas[1]?.pesoBruto).toBeNull();
   });
   it("Nº troca vazio vira nulo e volume ausente continua nulo", () => {
-    const { notas } = montarCarga("1", [{ ...base, volumes: null }, { ...base, numeroTroca: "555" }]);
+    const { notas } = montarCarga("1", [{ ...base, volumes: null }, { ...base, numeroPicking: "555" }]);
     expect(notas[0]?.numero_troca).toBeNull();
     expect(notas[0]?.volumes).toBeNull();
     expect(notas[1]?.numero_troca).toBe("555");

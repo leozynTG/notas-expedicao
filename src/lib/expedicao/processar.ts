@@ -13,7 +13,7 @@ export interface Resumo {
   fracionadas: number;
   semVolume: number;
   semPedido: number;
-  trocasSemPicking: number;
+  notasSemPicking: number;
   valorTotal: number;
   noZipTrocas: number;
   noZipDemais: number;
@@ -46,7 +46,7 @@ export function resumir(notas: NotaFiscal[]): Resumo {
     fracionadas: notas.filter((n) => n.fracionado).length,
     semVolume: notas.filter((n) => n.volumes === null).length,
     semPedido: notas.filter((n) => !n.pedido).length,
-    trocasSemPicking: notas.filter((n) => n.tipo === "Troca" && !n.numeroTroca).length,
+    notasSemPicking: notas.filter((n) => !n.numeroPicking).length,
     valorTotal: notas.reduce((s, n) => s + n.valor, 0),
     noZipTrocas: notas.filter((n) => n.grupoZip === "trocas_brindes_amostras").length,
     noZipDemais: notas.filter((n) => n.grupoZip === "demais_notas").length,
@@ -145,11 +145,11 @@ export async function processarCarga(
     const bytesPorArquivo = new Map(notas.map((n) => [n.arquivo, n.bytes]));
     notas = cruzado.notas.map((n) => ({ ...n, bytes: bytesPorArquivo.get(n.arquivo)! }));
     avisos.push(...cruzado.avisos);
-  } else if (notas.some((n) => n.tipo === "Troca")) {
+  } else {
     avisos.push({
       categoria: "Pickings",
       nivel: "info",
-      mensagem: "O mapa analítico não foi enviado, então as trocas ficaram sem número de picking.",
+      mensagem: "O mapa analítico não foi enviado, então as notas ficaram sem número de picking.",
     });
   }
 

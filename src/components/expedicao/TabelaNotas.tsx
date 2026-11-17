@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { brl, qtd } from "@/lib/formato";
 import type { LinhaPlanilha } from "@/lib/expedicao/exportar";
 
-const COLUNAS = ["NF", "Pedido", "Nº troca", "Tipo", "Destinatário", "Cidade/UF", "Valor", "Vol.", "CX", "FD", "UN", "Frac."];
+const COLUNAS = ["NF", "Pedido", "Nº picking", "Tipo", "Destinatário", "Cidade/UF", "Valor", "Vol.", "CX", "FD", "UN", "Frac."];
 
 export function TabelaNotas({ linhas, destaque }: { linhas: LinhaPlanilha[]; destaque?: string }) {
   const termo = destaque?.trim().toLowerCase() ?? "";
@@ -27,7 +27,7 @@ export function TabelaNotas({ linhas, destaque }: { linhas: LinhaPlanilha[]; des
             <tr key={`${n.chave}-${i}`} className={cn("border-t", bate(n) && "bg-accent")}>
               <td className="tabular px-3 py-2">{n.nfTexto}</td>
               <td className="tabular px-3 py-2">{n.pedido || <span className="text-destructive">—</span>}</td>
-              <td className="tabular px-3 py-2">{n.numeroTroca}</td>
+              <td className="tabular px-3 py-2">{n.numeroPicking}</td>
               <td className="px-3 py-2" title={n.natOp}>
                 {n.tipo}
               </td>

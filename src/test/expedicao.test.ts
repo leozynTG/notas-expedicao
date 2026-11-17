@@ -113,26 +113,47 @@ describe("pickings", () => {
     expect(p[1]?.pedido).toBe("AAJM3");
   });
 
-  it("preenche Nº troca só nas trocas e avisa CNPJ divergente e troca sem picking", async () => {
+  it("preenche o Nº picking em notas de qualquer tipo e avisa CNPJ divergente e nota sem picking", async () => {
     const zip = new JSZip();
-    zip.file("pasta/1.xml", xml({ nNF: "1", natOp: "VENDA" }));
+    zip.file("pasta/1.xml", xml({ nNF: "1", natOp: "VENDA", cpl: "PEDIDO: AAJM2  CARGA: 123" }));
     zip.file("pasta/2.xml", xml({ nNF: "2", natOp: "OUTRA SAIDA", fisco: "TROCA" }));
     zip.file("3.xml", xml({ nNF: "3", natOp: "OUTRA SAIDA", fisco: "TROCA" }));
-    zip.file("4.xml", xml({ nNF: "4", natOp: "OUTRA SAIDA", fisco: "TROCA" }));
+    zip.file("4.xml", xml({ nNF: "4", natOp: "REMESSA EM BONIFICACAO" }));
     zip.file("leia-me.txt", "ignorar");
     const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), lerPickingsTexto(MAPA));
     const nf = (n: number) => r.notas.find((x) => x.nf === n)!;
     expect(r.notas).toHaveLength(4);
-    expect(nf(1).numeroTroca).toBe("");
-    expect(nf(2).numeroTroca).toBe("778899");
-    expect(nf(3).numeroTroca).toBe("778899");
+    expect(nf(1).tipo).toBe("Venda");
+    expect(nf(1).numeroPicking).toBe("778899");
+    expect(nf(2).numeroPicking).toBe("778899");
+    expect(nf(3).numeroPicking).toBe("778899");
+    expect(nf(4).numeroPicking).toBe("");
     const divergentes = r.avisos.filter((a) => a.categoria === "CNPJ divergente");
     expect(divergentes).toHaveLength(1);
     expect(divergentes[0]!.mensagem).toContain("NF 3");
     expect(divergentes[0]!.mensagem).toContain("99.888.777/0001-66");
     expect(divergentes[0]!.mensagem).toContain("11.222.333/0001-81");
-    expect(r.avisos.some((a) => a.categoria === "Troca sem picking" && a.mensagem.includes("NF 4"))).toBe(true);
-    expect(r.resumo.trocasSemPicking).toBe(1);
+    const semPicking = r.avisos.filter((a) => a.categoria === "Nota sem picking");
+    expect(semPicking).toHaveLength(1);
+    expect(semPicking[0]!.mensagem).toContain("NF 4");
+    expect(semPicking[0]!.mensagem).toContain("CLIENTE 4");
+    expect(semPicking[0]!.mensagem).toContain("AAJM4");
+    expect(r.avisos.some((a) => a.categoria === "Troca sem picking")).toBe(false);
+    expect(r.resumo.notasSemPicking).toBe(1);
+  });
+
+  it("mesmo pedido em dois pickings com o mesmo número não gera aviso", async () => {
+    const zip = new JSZip();
+    zip.file("1.xml", xml({ nNF: "1", natOp: "OUTRA SAIDA", fisco: "BRINDE" }));
+    const mapa = `IMPRESSO DIA 1
+812
+Nome Cliente: A CNPJ....: 11.222.333/0001-81
+PEDIDO NUMERO: 01-AAJM1 | SIMPLES REMESSA DE MATERIAL
+PEDIDO NUMERO: 01-AAJM1 | REMESSA DE BRINDES/PREMIOS
+`;
+    const r = await processarCarga(await zip.generateAsync({ type: "uint8array" }), lerPickingsTexto(mapa));
+    expect(r.notas[0]!.numeroPicking).toBe("812");
+    expect(r.avisos.filter((a) => a.nivel !== "info")).toEqual([]);
   });
 });
 
@@ -270,6 +291,8 @@ describe("saídas", () => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(bytes.buffer as ArrayBuffer);
     const ws = wb.getWorksheet("Notas")!;
+    expect(ws.getCell("B1").value).toBe("Pedido");
+    expect(ws.getCell("C1").value).toBe("Nº picking");
     expect(ws.getCell("A2").value).toBe(1);
     expect(ws.getCell("I2").value).toBeNull();
     expect(ws.getCell("H4").value).toMatchObject({ formula: "SUM(H2:H3)" });

@@ -64,7 +64,7 @@ type NotaParaSalvar = Pick<
   NotaFiscal,
   | "nfTexto"
   | "pedido"
-  | "numeroTroca"
+  | "numeroPicking"
   | "natOp"
   | "tipo"
   | "destinatario"
@@ -112,7 +112,7 @@ export function montarCarga(
     notas: notas.map((n) => ({
       nf: n.nfTexto,
       pedido: n.pedido,
-      numero_troca: n.numeroTroca ? n.numeroTroca : null,
+      numero_troca: n.numeroPicking ? n.numeroPicking : null,
       natureza_operacao: n.natOp,
       tipo: n.tipo,
       destinatario: n.destinatario,
@@ -163,7 +163,7 @@ export function linhasDoHistorico(notas: NotaSalva[]): LinhaPlanilha[] {
         nf: Number.isFinite(nf) ? nf : null,
         nfTexto: n.nf,
         pedido: n.pedido,
-        numeroTroca: n.numero_troca ?? "",
+        numeroPicking: n.numero_troca ?? "",
         natOp: n.natureza_operacao,
         tipo: n.tipo as Tipo,
         destinatario: n.destinatario,

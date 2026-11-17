@@ -128,9 +128,9 @@ export function Resultado({ resultado, onBaixar, onNova }: Props) {
         <Indicador rotulo="Sem volume no XML" valor={resumo.semVolume} destaque={resumo.semVolume > 0} />
         <Indicador rotulo="Sem pedido" valor={resumo.semPedido} destaque={resumo.semPedido > 0} />
         <Indicador
-          rotulo="Trocas sem picking"
-          valor={resumo.trocasSemPicking}
-          destaque={resumo.trocasSemPicking > 0}
+          rotulo="Notas sem picking"
+          valor={resumo.notasSemPicking}
+          destaque={resumo.notasSemPicking > 0}
         />
         <Indicador rotulo="Valor total" valor={brl(resumo.valorTotal)} />
       </section>

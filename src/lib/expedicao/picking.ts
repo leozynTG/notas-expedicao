@@ -163,7 +163,7 @@ export function lerPickings(texto: string): Picking[] {
   return pickings;
 }
 
-/** Fills numeroTroca on Troca notes and returns the cross-check warnings. */
+/** Fills numeroPicking on every note (any Tipo) by pedido and returns the cross-check warnings. */
 export function cruzarPickings(
   notas: NotaFiscal[],
   pickings: Picking[],
@@ -178,7 +178,7 @@ export function cruzarPickings(
   const pedidosNf = new Set(notas.map((n) => n.pedido.toUpperCase()).filter(Boolean));
 
   const saida = notas.map((n) => {
-    const nota = { ...n, numeroTroca: "" };
+    const nota = { ...n, numeroPicking: "" };
     const achados = nota.pedido ? (porPedido.get(nota.pedido.toUpperCase()) ?? []) : [];
 
     for (const p of achados) {
@@ -191,36 +191,36 @@ export function cruzarPickings(
       }
     }
 
-    if (nota.tipo === "Troca") {
-      if (!nota.pedido) {
+    const ident = `NF ${nota.nfTexto} — ${nota.destinatario || "destinatário não informado"} — pedido ${nota.pedido || "não informado"}`;
+    if (!nota.pedido) {
+      avisos.push({
+        categoria: "Nota sem picking",
+        nivel: "erro",
+        mensagem: `${ident}: o XML não tem pedido para cruzar com os pickings.`,
+      });
+    } else if (achados.length === 0) {
+      avisos.push({
+        categoria: "Nota sem picking",
+        nivel: "erro",
+        mensagem: `${ident}: pedido não encontrado nos pickings.`,
+      });
+    } else {
+      // The same pedido can appear in two pickings (e.g. remessa + brindes) with the same number: not an error.
+      const numeros = Array.from(new Set(achados.map((p) => p.numero).filter(Boolean)));
+      nota.numeroPicking = numeros.join(" / ");
+      if (numeros.length > 1) {
         avisos.push({
-          categoria: "Troca sem picking",
-          nivel: "erro",
-          mensagem: `NF ${nota.nfTexto} (${nota.destinatario}) é troca, mas o XML não tem pedido para cruzar.`,
+          categoria: "Vários pickings para o mesmo pedido",
+          nivel: "alerta",
+          mensagem: `NF ${nota.nfTexto}: pedido ${nota.pedido} aparece nos pickings ${numeros.join(", ")}.`,
         });
-      } else if (achados.length === 0) {
+      }
+      if (numeros.length === 0) {
         avisos.push({
-          categoria: "Troca sem picking",
+          categoria: "Nota sem picking",
           nivel: "erro",
-          mensagem: `NF ${nota.nfTexto} (${nota.destinatario}): pedido ${nota.pedido} não encontrado nos pickings.`,
+          mensagem: `${ident}: pedido encontrado, mas o número do picking não foi lido.`,
         });
-      } else {
-        const numeros = Array.from(new Set(achados.map((p) => p.numero).filter(Boolean)));
-        nota.numeroTroca = numeros.join(" / ");
-        if (numeros.length > 1) {
-          avisos.push({
-            categoria: "Vários pickings para o mesmo pedido",
-            nivel: "alerta",
-            mensagem: `NF ${nota.nfTexto}: pedido ${nota.pedido} aparece nos pickings ${numeros.join(", ")}.`,
-          });
-        }
-        if (numeros.length === 0) {
-          avisos.push({
-            categoria: "Troca sem picking",
-            nivel: "erro",
-            mensagem: `NF ${nota.nfTexto}: pedido ${nota.pedido} encontrado, mas o número do picking não foi lido.`,
-          });
-        }
       }
     }
     return nota;

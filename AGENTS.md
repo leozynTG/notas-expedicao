@@ -37,3 +37,4 @@ use the editor.
 - Parsing and business rules live in `src/lib/expedicao/` (pure functions, tested in `src/test/expedicao.test.ts`); UI only calls them. Why: rules (classification, ZIP split, picking cross-check) must stay testable without a browser.
 - Browser-only libraries (exceljs, pdfjs-dist) are loaded with dynamic `import()` inside handlers. Why: keeps them out of SSR.
 - The Dashboard reads one aggregate from the `dashboard_cargas(_de, _ate)` SQL function (per-carga totals + per-carga city rows); all derived metrics (averages, %, top cities, per-carga view) are pure functions in `src/lib/expedicao/dashboard.ts`, tested in `src/test/dashboard.test.ts`. Why: avoids downloading every nota and keeps the rules testable.
+- `notas.numero_troca` stores the picking number for every nota type (app field `numeroPicking`); the column is kept, not renamed. Why: renaming would break the deployed app and older saved cargas.

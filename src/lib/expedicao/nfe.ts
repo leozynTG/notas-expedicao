@@ -46,7 +46,7 @@ export interface NotaFiscal {
   fracionado: boolean;
   outrasUnidades: string[];
   grupoZip: GrupoZip;
-  numeroTroca: string;
+  numeroPicking: string;
 }
 
 /** Uppercase and strip accents so "BONIFICAÇÃO" and "BONIFICACAO" compare equal. */
@@ -193,6 +193,6 @@ export function lerNfe(xml: string, arquivo: string): NotaFiscal {
     fracionado,
     outrasUnidades,
     grupoZip: grupoZip(natOp),
-    numeroTroca: "",
+    numeroPicking: "",
   };
 }

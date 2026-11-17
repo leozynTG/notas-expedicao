@@ -5,7 +5,7 @@ import type { NotaFiscal } from "./nfe";
 export const CABECALHO = [
   "NF",
   "Pedido",
-  "Nº troca (picking)",
+  "Nº picking",
   "Natureza da operação",
   "Tipo",
   "Destinatário",
@@ -31,7 +31,7 @@ export type LinhaPlanilha = Pick<
   | "nf"
   | "nfTexto"
   | "pedido"
-  | "numeroTroca"
+  | "numeroPicking"
   | "natOp"
   | "tipo"
   | "destinatario"
@@ -62,7 +62,7 @@ export async function gerarPlanilha(notas: LinhaPlanilha[]): Promise<Uint8Array>
     const row = ws.addRow([
       n.nf ?? n.nfTexto,
       n.pedido,
-      n.numeroTroca,
+      n.numeroPicking,
       n.natOp,
       n.tipo,
       n.destinatario,

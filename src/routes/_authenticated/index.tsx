@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/")({
       {
         name: "description",
         content:
-          "Leia os XMLs de NF-e de uma carga, cruze as trocas com os pickings e baixe a planilha e os ZIPs separados. Tudo no navegador.",
+          "Leia os XMLs de NF-e de uma carga, cruze as notas com os pickings e baixe a planilha e os ZIPs separados. Tudo no navegador.",
       },
       { property: "og:title", content: "Expedição CDLog" },
       {
@@ -146,7 +146,7 @@ function Index() {
               </Button>
               {!mapa && zip && (
                 <span className="text-sm text-muted-foreground">
-                  Sem o mapa, as trocas ficam sem número de picking.
+                  Sem o mapa, as notas ficam sem número de picking.
                 </span>
               )}
             </div>
