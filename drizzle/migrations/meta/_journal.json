@@ -22,6 +22,13 @@
       "when": 1794494595387,
       "tag": "0002_dashboard_cargas",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795525748482,
+      "tag": "0003_recebimentos",
+      "breakpoints": true
     }
   ]
 }

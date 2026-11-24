@@ -171,6 +171,123 @@ export type Database = {
         }
         Relationships: []
       }
+      recebimentos: {
+        Row: {
+          assinatura_conferente: string | null
+          assinatura_motorista: string | null
+          atualizado_em: string
+          cliente: string
+          conferente: string
+          criado_em: string
+          criado_por: string | null
+          criado_por_email: string
+          cubagem_m3: number | null
+          data_chegada: string
+          data_saida: string | null
+          hora_chegada: string | null
+          hora_final: string | null
+          hora_inicio: string | null
+          id: string
+          lacre: string
+          lanc_controle_paletes: boolean
+          lanc_email: boolean
+          lanc_kpi: boolean
+          motorista: string
+          ocorrencias: Json
+          origem: string
+          paletes_chep: number | null
+          paletes_descartavel: number | null
+          paletes_pbr: number | null
+          paletes_quebrados: number | null
+          paletes_total: number | null
+          peso_kg: number | null
+          placa: string
+          quant_nfe: number | null
+          tem_ocorrencia: boolean
+          transportadora: string
+          transporte: string
+          valor: number | null
+          veiculo: string
+          volumes: number
+        }
+        Insert: {
+          assinatura_conferente?: string | null
+          assinatura_motorista?: string | null
+          atualizado_em?: string
+          cliente: string
+          conferente?: string
+          criado_em?: string
+          criado_por?: string | null
+          criado_por_email?: string
+          cubagem_m3?: number | null
+          data_chegada: string
+          data_saida?: string | null
+          hora_chegada?: string | null
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          lacre?: string
+          lanc_controle_paletes?: boolean
+          lanc_email?: boolean
+          lanc_kpi?: boolean
+          motorista: string
+          ocorrencias?: Json
+          origem?: string
+          paletes_chep?: number | null
+          paletes_descartavel?: number | null
+          paletes_pbr?: number | null
+          paletes_quebrados?: number | null
+          paletes_total?: number | null
+          peso_kg?: number | null
+          placa: string
+          quant_nfe?: number | null
+          tem_ocorrencia?: boolean
+          transportadora?: string
+          transporte?: string
+          valor?: number | null
+          veiculo?: string
+          volumes: number
+        }
+        Update: {
+          assinatura_conferente?: string | null
+          assinatura_motorista?: string | null
+          atualizado_em?: string
+          cliente?: string
+          conferente?: string
+          criado_em?: string
+          criado_por?: string | null
+          criado_por_email?: string
+          cubagem_m3?: number | null
+          data_chegada?: string
+          data_saida?: string | null
+          hora_chegada?: string | null
+          hora_final?: string | null
+          hora_inicio?: string | null
+          id?: string
+          lacre?: string
+          lanc_controle_paletes?: boolean
+          lanc_email?: boolean
+          lanc_kpi?: boolean
+          motorista?: string
+          ocorrencias?: Json
+          origem?: string
+          paletes_chep?: number | null
+          paletes_descartavel?: number | null
+          paletes_pbr?: number | null
+          paletes_quebrados?: number | null
+          paletes_total?: number | null
+          peso_kg?: number | null
+          placa?: string
+          quant_nfe?: number | null
+          tem_ocorrencia?: boolean
+          transportadora?: string
+          transporte?: string
+          valor?: number | null
+          veiculo?: string
+          volumes?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
