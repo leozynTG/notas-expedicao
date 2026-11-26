@@ -1,7 +1,12 @@
-import { montarPagina, type PaginaCte } from "./ordenar";
+import { montarPagina, montarPaginaApoio, type PaginaCte } from "./ordenar";
 
 /** Reads each page's text (items joined by spaces) and builds the page records. Browser-only. */
-export async function lerCtes(arquivos: File[], progresso: (atual: number, total: number) => void) {
+export async function lerCtes(
+  arquivos: File[],
+  progresso: (atual: number, total: number) => void,
+  /** Arquivos a partir deste índice são NF-e/boletos (os anteriores são CTe). */
+  primeiroApoio = arquivos.length,
+) {
   const [pdfjs, worker] = await Promise.all([import("pdfjs-dist"), import("pdfjs-dist/build/pdf.worker.min.mjs?url")]);
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   const docs = await Promise.all(
@@ -15,7 +20,7 @@ export async function lerCtes(arquivos: File[], progresso: (atual: number, total
       progresso(++atual, total);
       const c = await (await doc.getPage(p)).getTextContent();
       const texto = (c.items as { str?: string }[]).map((it) => it.str ?? "").join(" ");
-      paginas.push(montarPagina(i, arquivos[i]!.name, p, texto));
+      paginas.push((i >= primeiroApoio ? montarPaginaApoio : montarPagina)(i, arquivos[i]!.name, p, texto));
     }
   }
   return paginas;
