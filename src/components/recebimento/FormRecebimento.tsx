@@ -140,7 +140,7 @@ export function FormRecebimento({ inicial, onSalvar, salvando }: { inicial: Form
       )}
 
       <div className="card-surface flex flex-wrap items-center gap-3 p-4">
-        <input ref={arquivo} type="file" accept=".zip" className="hidden" onChange={(e) => e.target.files?.[0] && lerXml(e.target.files[0])} />
+        <input ref={arquivo} type="file" accept=".zip,.rar" className="hidden" onChange={(e) => e.target.files?.[0] && lerXml(e.target.files[0])} />
         <Button type="button" variant="outline" onClick={() => arquivo.current?.click()} disabled={lendo}>
           {lendo ? <Loader2 className="animate-spin" /> : <FileArchive />} Preencher a partir dos XMLs da carga
         </Button>

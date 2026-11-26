@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { paraZip } from "./compactado";
 import { lerNfe, XmlIgnorado, TIPOS, type NotaFiscal, type Tipo } from "./nfe";
 import { cruzarPickings, type LeituraPickings, type Picking } from "./picking";
 import type { Aviso } from "./tipos";
@@ -57,7 +58,7 @@ export async function processarCarga(
   zipData: ArrayBuffer | Uint8Array,
   leitura: LeituraPickings | null,
 ): Promise<ResultadoCarga> {
-  const zip = await JSZip.loadAsync(zipData);
+  const zip = await JSZip.loadAsync(await paraZip(zipData));
   const avisos: Aviso[] = [];
   const porChave = new Map<string, NotaComArquivo>();
 

@@ -18,6 +18,9 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedHistoricoIndexRouteImport } from './routes/_authenticated/historico.index'
 import { Route as AuthenticatedHistoricoIdRouteImport } from './routes/_authenticated/historico.$id'
+import { Route as AuthenticatedRecebimentoIndexRouteImport } from './routes/_authenticated/recebimento.index'
+import { Route as AuthenticatedRecebimentoIdRouteImport } from './routes/_authenticated/recebimento.$id'
+import { Route as AuthenticatedRecebimentoNovoRouteImport } from './routes/_authenticated/recebimento.novo'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -65,6 +68,24 @@ const AuthenticatedHistoricoIdRoute =
     path: '/historico/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRecebimentoIndexRoute =
+  AuthenticatedRecebimentoIndexRouteImport.update({
+    id: '/recebimento/',
+    path: '/recebimento/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRecebimentoIdRoute =
+  AuthenticatedRecebimentoIdRouteImport.update({
+    id: '/recebimento/$id',
+    path: '/recebimento/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRecebimentoNovoRoute =
+  AuthenticatedRecebimentoNovoRouteImport.update({
+    id: '/recebimento/novo',
+    path: '/recebimento/novo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -74,7 +95,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/historico/$id': typeof AuthenticatedHistoricoIdRoute
+  '/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
+  '/recebimento/novo': typeof AuthenticatedRecebimentoNovoRoute
   '/historico/': typeof AuthenticatedHistoricoIndexRoute
+  '/recebimento/': typeof AuthenticatedRecebimentoIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -84,7 +108,10 @@ export interface FileRoutesByTo {
   '/usuarios': typeof AuthenticatedUsuariosRoute
   '/': typeof AuthenticatedIndexRoute
   '/historico/$id': typeof AuthenticatedHistoricoIdRoute
+  '/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
+  '/recebimento/novo': typeof AuthenticatedRecebimentoNovoRoute
   '/historico': typeof AuthenticatedHistoricoIndexRoute
+  '/recebimento': typeof AuthenticatedRecebimentoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,7 +123,10 @@ export interface FileRoutesById {
   '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/historico/$id': typeof AuthenticatedHistoricoIdRoute
+  '/_authenticated/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
+  '/_authenticated/recebimento/novo': typeof AuthenticatedRecebimentoNovoRoute
   '/_authenticated/historico/': typeof AuthenticatedHistoricoIndexRoute
+  '/_authenticated/recebimento/': typeof AuthenticatedRecebimentoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,7 +138,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/usuarios'
     | '/historico/$id'
+    | '/recebimento/$id'
+    | '/recebimento/novo'
     | '/historico/'
+    | '/recebimento/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -118,7 +151,10 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/'
     | '/historico/$id'
+    | '/recebimento/$id'
+    | '/recebimento/novo'
     | '/historico'
+    | '/recebimento'
   id:
     | '__root__'
     | '/_authenticated'
@@ -129,7 +165,10 @@ export interface FileRouteTypes {
     | '/_authenticated/usuarios'
     | '/_authenticated/'
     | '/_authenticated/historico/$id'
+    | '/_authenticated/recebimento/$id'
+    | '/_authenticated/recebimento/novo'
     | '/_authenticated/historico/'
+    | '/_authenticated/recebimento/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,6 +242,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoricoIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/recebimento/': {
+      id: '/_authenticated/recebimento/'
+      path: '/recebimento'
+      fullPath: '/recebimento/'
+      preLoaderRoute: typeof AuthenticatedRecebimentoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recebimento/$id': {
+      id: '/_authenticated/recebimento/$id'
+      path: '/recebimento/$id'
+      fullPath: '/recebimento/$id'
+      preLoaderRoute: typeof AuthenticatedRecebimentoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recebimento/novo': {
+      id: '/_authenticated/recebimento/novo'
+      path: '/recebimento/novo'
+      fullPath: '/recebimento/novo'
+      preLoaderRoute: typeof AuthenticatedRecebimentoNovoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -212,7 +272,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedHistoricoIdRoute: typeof AuthenticatedHistoricoIdRoute
+  AuthenticatedRecebimentoIdRoute: typeof AuthenticatedRecebimentoIdRoute
+  AuthenticatedRecebimentoNovoRoute: typeof AuthenticatedRecebimentoNovoRoute
   AuthenticatedHistoricoIndexRoute: typeof AuthenticatedHistoricoIndexRoute
+  AuthenticatedRecebimentoIndexRoute: typeof AuthenticatedRecebimentoIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -221,7 +284,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedHistoricoIdRoute: AuthenticatedHistoricoIdRoute,
+  AuthenticatedRecebimentoIdRoute: AuthenticatedRecebimentoIdRoute,
+  AuthenticatedRecebimentoNovoRoute: AuthenticatedRecebimentoNovoRoute,
   AuthenticatedHistoricoIndexRoute: AuthenticatedHistoricoIndexRoute,
+  AuthenticatedRecebimentoIndexRoute: AuthenticatedRecebimentoIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

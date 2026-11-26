@@ -41,7 +41,7 @@ function Index() {
   const [resultado, setResultado] = useState<ResultadoCarga | null>(null);
   const [arquivos, setArquivos] = useState<Arquivos | null>(null);
 
-  const base = zip ? zip.name.replace(/\.zip$/i, "") : "carga";
+  const base = zip ? zip.name.replace(/\.(zip|rar)$/i, "") : "carga";
 
   async function processar() {
     if (!zip) return;
@@ -112,9 +112,9 @@ function Index() {
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <DropZone
                 titulo="1. ZIP com os XMLs"
-                dica="Arraste o .zip aqui ou clique para escolher"
-                aceita=".zip,application/zip"
-                extensoes={[".zip"]}
+                dica="Arraste o .zip ou .rar aqui ou clique para escolher"
+                aceita=".zip,.rar,application/zip,application/vnd.rar"
+                extensoes={[".zip", ".rar"]}
                 icone={<FileArchive />}
                 arquivo={zip}
                 onArquivo={setZip}
