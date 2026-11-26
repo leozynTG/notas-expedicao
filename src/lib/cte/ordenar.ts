@@ -91,12 +91,46 @@ const RANK: Record<TipoPagina, number> = { cte: 0, nfe: 1, outro: 1, boleto: 2 }
 
 export const notaOrdem = (p: PaginaCte): number | null => p.notas[0] ?? p.manual;
 
+const notasDe = (p: PaginaCte): number[] => (p.notas.length > 0 ? p.notas : p.manual !== null ? [p.manual] : []);
+
+/** CTe com várias notas (mesmo destinatário): cada nota aponta para a menor nota do grupo. */
+function gruposDeNotas(paginas: PaginaCte[]): Map<number, number> {
+  const pai = new Map<number, number>();
+  const raiz = (n: number): number => {
+    let r = n;
+    while (pai.has(r) && pai.get(r) !== r) r = pai.get(r)!;
+    return r;
+  };
+  for (const p of paginas) {
+    if (p.tipo !== "cte") continue;
+    const ns = notasDe(p);
+    for (const n of ns) if (!pai.has(n)) pai.set(n, n);
+    for (const n of ns.slice(1)) {
+      const ra = raiz(ns[0]!);
+      const rb = raiz(n);
+      if (ra !== rb) pai.set(Math.max(ra, rb), Math.min(ra, rb));
+    }
+  }
+  return new Map([...pai.keys()].map((n) => [n, raiz(n)]));
+}
+
 export function ordenarPaginas(paginas: PaginaCte[]): PaginaCte[] {
+  const grupo = gruposDeNotas(paginas);
+  const chave = (p: PaginaCte): number | null => {
+    const n = notaOrdem(p);
+    return n === null ? null : (grupo.get(n) ?? n);
+  };
   return [...paginas].sort((a, b) => {
+    const ga = chave(a);
+    const gb = chave(b);
+    if (ga === null && gb !== null) return 1;
+    if (gb === null && ga !== null) return -1;
+    if (ga !== null && gb !== null && ga !== gb) return ga - gb;
     const na = notaOrdem(a);
     const nb = notaOrdem(b);
-    if (na === null && nb !== null) return 1;
-    if (nb === null && na !== null) return -1;
+    // No mesmo grupo: o CTe vem primeiro, depois cada nota com sua NF-e e boletos.
+    if (a.tipo === "cte" && b.tipo !== "cte") return -1;
+    if (b.tipo === "cte" && a.tipo !== "cte") return 1;
     if (na !== null && nb !== null && na !== nb) return na - nb;
     return (
       RANK[a.tipo] - RANK[b.tipo] ||
@@ -125,9 +159,9 @@ export function conferirConjunto(paginas: PaginaCte[]): string[] {
   const temApoio = paginas.some((p) => p.tipo !== "cte");
   if (!temApoio) return [];
   const avisos: string[] = [];
-  const notas = [...new Set(paginas.map(notaOrdem).filter((n): n is number => n !== null))].sort((a, b) => a - b);
+  const notas = [...new Set(paginas.flatMap(notasDe))].sort((a, b) => a - b);
   for (const n of notas) {
-    const doNota = paginas.filter((p) => notaOrdem(p) === n);
+    const doNota = paginas.filter((p) => notasDe(p).includes(n));
     const tem = (t: TipoPagina) => doNota.some((p) => p.tipo === t);
     if (!tem("cte")) avisos.push(`Nota ${n}: não tem CTe.`);
     if (!tem("nfe")) avisos.push(`Nota ${n}: não tem a NF-e.`);

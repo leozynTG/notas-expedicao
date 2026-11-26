@@ -34,4 +34,20 @@ describe("NF-e e boletos junto com CTe", () => {
     const p = apoio(textos as string[]).filter((x) => x.parcela?.n !== 3);
     expect(conferirConjunto(p)).toContain("Nota 89054: faltam os boletos 3/3.");
   });
+
+  it("CTe com várias notas cobre todas e agrupa as notas depois dele", () => {
+    const mk = (tipo: "cte" | "nfe" | "boleto", nota: number, n = 0, notas = [nota]) => ({
+      ...montarPagina(0, "a.pdf", 1, ""), tipo, notas, chaves: tipo === "cte" ? ["x"] : [], parcela: n ? { n, total: 1 } : null,
+    });
+    const todas = [
+      mk("nfe", 89130), mk("boleto", 89130, 1), mk("nfe", 89121), mk("boleto", 89121, 1),
+      mk("nfe", 89125), mk("boleto", 89125, 1), mk("cte", 89121, 0, [89121, 89130]), mk("cte", 89125),
+    ];
+    const ordem = ordenarPaginas(todas).map((x) => `${x.notas.join("+")}-${x.tipo}`);
+    expect(ordem).toEqual([
+      "89121+89130-cte", "89121-nfe", "89121-boleto", "89130-nfe", "89130-boleto", "89125-cte",
+      "89125-nfe", "89125-boleto",
+    ]);
+    expect(conferirConjunto(todas)).toEqual([]);
+  });
 });
