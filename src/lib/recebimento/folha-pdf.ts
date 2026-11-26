@@ -45,11 +45,13 @@ const LOGO = { x0: 41.8, x1: 193.2, topo: 46.9, base: 91.6 };
 
 export async function gerarFolhaPdf(r: Registro): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-  const base = document.baseURI;
-  const [modelo, logo] = await Promise.all([
-    fetch(new URL("folha-recebimento.pdf", base)).then((x) => x.arrayBuffer()),
-    fetch(new URL("logo-cdlog.png", base)).then((x) => x.arrayBuffer()),
-  ]);
+  const baixar = async (caminho: string) => {
+    const resp = await fetch(new URL(caminho, document.baseURI));
+    if (!resp.ok) throw new Error(`Arquivo ${caminho} não encontrado (${resp.status}).`);
+    return resp.arrayBuffer();
+  };
+  // Caminhos a partir da raiz do site (a página atual é /recebimento/<id>).
+  const [modelo, logo] = await Promise.all([baixar("/folha-recebimento.pdf"), baixar("/logo-cdlog.png")]);
   const saida = await PDFDocument.create();
   const [tpl] = (await saida.embedPdf(await PDFDocument.load(modelo), [0])) as [Awaited<ReturnType<typeof saida.embedPdf>>[number]];
   const imgLogo = await saida.embedPng(logo);
