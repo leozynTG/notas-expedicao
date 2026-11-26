@@ -23,14 +23,26 @@ export function escreverNumBr(v: number | null | undefined, casas = 2): string {
   return v.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: casas });
 }
 
-export function normalizarPlaca(s: string): string {
+function placaUma(s: string): string {
   const t = s.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
   return t.length > 3 ? `${t.slice(0, 3)}-${t.slice(3)}` : t;
 }
 
-/** AAA-0A00 (Mercosul) ou AAA-0000 (antiga); hífen opcional. */
+/** Aceita uma ou duas placas (cavalo / carreta), separadas por "/". */
+export function normalizarPlaca(s: string): string {
+  const limpo = s.toUpperCase();
+  let partes = limpo.split(/[/,;]/);
+  if (partes.length === 1) {
+    const t = limpo.replace(/[^A-Z0-9]/g, "");
+    partes = t.length > 7 ? [t.slice(0, 7), t.slice(7, 14)] : [t];
+  }
+  return partes.slice(0, 2).map(placaUma).join(" / ");
+}
+
+/** AAA-0A00 (Mercosul) ou AAA-0000 (antiga); hífen opcional. Aceita duas placas separadas por "/". */
 export function placaValida(s: string): boolean {
-  return /^[A-Z]{3}-?\d[A-Z0-9]\d{2}$/.test(s.trim().toUpperCase());
+  const partes = s.split("/").map((x) => x.trim().toUpperCase());
+  return partes.length <= 2 && partes.every((x) => /^[A-Z]{3}-?\d[A-Z0-9]\d{2}$/.test(x));
 }
 
 function minutos(h: string): number | null {

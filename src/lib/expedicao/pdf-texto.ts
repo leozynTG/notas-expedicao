@@ -43,3 +43,14 @@ export async function abrirPdf(dados: ArrayBuffer | Uint8Array) {
   const copia = dados instanceof Uint8Array ? dados.slice() : new Uint8Array(dados.slice(0));
   return pdfjs.getDocument({ data: copia }).promise;
 }
+
+/** Texto de cada página do PDF (itens separados por espaço). */
+export async function lerTextoPdf(arquivo: File): Promise<string[]> {
+  const pdf = await abrirPdf(await arquivo.arrayBuffer());
+  const paginas: string[] = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const c = await (await pdf.getPage(i)).getTextContent();
+    paginas.push((c.items as { str?: string }[]).map((it) => it.str ?? "").join(" "));
+  }
+  return paginas;
+}

@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
-import { FileArchive, Loader2, Plus, Save, Trash2, TriangleAlert } from "lucide-react";
+import { FileArchive, FileText, Loader2, Plus, Save, Trash2, TriangleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ export function FormRecebimento({ inicial, onSalvar, salvando }: { inicial: Form
   const [lendo, setLendo] = useState(false);
   const [avisosXml, setAvisosXml] = useState<string[]>([]);
   const arquivo = useRef<HTMLInputElement>(null);
+  const arquivoMdfe = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
 
@@ -112,6 +113,43 @@ export function FormRecebimento({ inicial, onSalvar, salvando }: { inicial: Form
     }
   }
 
+  async function lerMdfe(file: File) {
+    setLendo(true);
+    setAvisosXml([]);
+    try {
+      const { lerTextoPdf } = await import("@/lib/expedicao/pdf-texto");
+      const { lerManifesto } = await import("@/lib/recebimento/manifesto");
+      const { dados, avisos } = lerManifesto(await lerTextoPdf(file));
+      const achou = Object.values(dados).filter(Boolean).length;
+      if (achou === 0) {
+        toast.error("Não encontrei dados de manifesto nesse PDF.");
+        setAvisosXml(avisos);
+        return;
+      }
+      setF((x) => ({
+        ...x,
+        cliente: dados.cliente || x.cliente,
+        origem: dados.origem || x.origem,
+        motorista: dados.motorista || x.motorista,
+        transportadora: dados.transportadora || x.transportadora,
+        placa: dados.placa || x.placa,
+        peso: dados.peso || x.peso,
+        valor: dados.valor || x.valor,
+        volumes: dados.volumes || x.volumes,
+        quant_nfe: dados.quant_nfe || x.quant_nfe,
+        lacre: dados.lacre || x.lacre,
+      }));
+      setAvisosXml(avisos);
+      toast.success("Manifesto lido. Confira os campos preenchidos.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível ler o PDF do manifesto.");
+    } finally {
+      setLendo(false);
+      if (arquivoMdfe.current) arquivoMdfe.current.value = "";
+    }
+  }
+
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
     const er = validar(f);
@@ -144,7 +182,11 @@ export function FormRecebimento({ inicial, onSalvar, salvando }: { inicial: Form
         <Button type="button" variant="outline" onClick={() => arquivo.current?.click()} disabled={lendo}>
           {lendo ? <Loader2 className="animate-spin" /> : <FileArchive />} Preencher a partir dos XMLs da carga
         </Button>
-        <p className="text-xs text-muted-foreground">Opcional. O ZIP é lido no seu computador e não é enviado.</p>
+        <input ref={arquivoMdfe} type="file" accept=".pdf,application/pdf" className="hidden" onChange={(e) => e.target.files?.[0] && lerMdfe(e.target.files[0])} />
+        <Button type="button" variant="outline" onClick={() => arquivoMdfe.current?.click()} disabled={lendo}>
+          {lendo ? <Loader2 className="animate-spin" /> : <FileText />} Preencher a partir do manifesto (PDF)
+        </Button>
+        <p className="text-xs text-muted-foreground">Opcional. Os arquivos são lidos no seu computador e não são enviados.</p>
         {avisosXml.map((a) => <Aviso key={a}>{a}</Aviso>)}
       </div>
 
@@ -180,7 +222,7 @@ export function FormRecebimento({ inicial, onSalvar, salvando }: { inicial: Form
           {campo("motorista", "Motorista", "texto", { obrig: true })}
           {campo("transportadora", "Transportadora")}
           {campo("veiculo", "Veículo", "texto", { ph: "3/4, Truck…" })}
-          {campo("placa", "Placa", "texto", { obrig: true, ph: "AAA-0A00" })}
+          {campo("placa", "Placa", "texto", { obrig: true, ph: "AAA-0A00 ou AAA-0A00 / BBB-0B00" })}
           {campo("peso", "Peso (kg)", "decimal", { ph: "2.435,2" })}
           {campo("valor", "Valor da carga (R$)", "decimal", { ph: "177.993,51" })}
           {campo("transporte", "Transporte")}

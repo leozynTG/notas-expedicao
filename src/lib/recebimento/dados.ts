@@ -59,7 +59,7 @@ export function validar(f: Form): string[] {
   if (!f.cliente.trim()) e.push("Informe o cliente.");
   if (!f.motorista.trim()) e.push("Informe o motorista.");
   if (!f.placa.trim()) e.push("Informe a placa.");
-  else if (!placaValida(f.placa)) e.push("Placa inválida (use AAA-0A00 ou AAA-0000).");
+  else if (!placaValida(f.placa)) e.push("Placa inválida (use AAA-0A00 ou AAA-0000; para duas placas separe com /).");
   const vol = lerInteiro(f.volumes);
   if (vol === null) e.push("Informe os volumes.");
   const nums: [string, number | null][] = [

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Truck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Campo, Erro } from "@/components/app/Campos";
@@ -113,10 +113,8 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="card-surface w-full max-w-sm p-7">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Truck className="size-5" />
-          </div>
-          <div>
+          <img src="/logo-cdlog.png" alt="CDlog" className="h-10 w-auto" />
+          <div className="border-l pl-3">
             <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground">Expedição CDLog</h1>
             <p className="text-xs text-muted-foreground">Acesso somente para convidados</p>
           </div>

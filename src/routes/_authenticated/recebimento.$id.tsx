@@ -41,6 +41,7 @@ function Detalhe() {
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
+  const [imprimindo, setImprimindo] = useState(false);
 
   if (!r) {
     return (
@@ -68,6 +69,19 @@ function Detalhe() {
     }
   }
 
+  async function imprimir() {
+    setImprimindo(true);
+    try {
+      const { abrirFolhaPdf } = await import("@/lib/recebimento/folha-pdf");
+      if (r) await abrirFolhaPdf(r);
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar a folha para impressão.");
+    } finally {
+      setImprimindo(false);
+    }
+  }
+
   async function excluir() {
     setExcluindo(true);
     try {
@@ -92,7 +106,7 @@ function Detalhe() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">{editando ? "Editar recebimento" : "Recebimento"}</h1>
         {!editando && (
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => window.print()}><Printer /> Imprimir / PDF</Button>
+            <Button variant="outline" onClick={imprimir} disabled={imprimindo}>{imprimindo ? <Loader2 className="animate-spin" /> : <Printer />} Imprimir folha</Button>
             <Button variant="outline" onClick={() => setEditando(true)}><Pencil /> Editar</Button>
             <Button variant="outline" asChild>
               <Link to="/recebimento/novo" search={{ copiar: id }}><Copy /> Duplicar</Link>

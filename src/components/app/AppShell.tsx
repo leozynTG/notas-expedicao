@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { History, LayoutDashboard, LogOut, PackagePlus, FileStack, ShieldAlert, ShieldCheck, Truck, Users, ClipboardCheck } from "lucide-react";
+import { History, LayoutDashboard, LogOut, PackagePlus, FileStack, ShieldAlert, ShieldCheck, Users, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEu } from "@/hooks/use-eu";
@@ -28,10 +28,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="border-b bg-card/80 backdrop-blur">
         <div className="mx-auto max-w-6xl px-5">
           <div className="flex items-center gap-3 py-4">
-            <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Truck className="size-5" />
-            </div>
-            <div>
+            <img src="/logo-cdlog.png" alt="CDlog — Sua entrega sempre na frente" className="h-11 w-auto" />
+            <div className="border-l pl-3">
               <p className="text-lg font-bold leading-tight tracking-tight text-foreground">Expedição CDLog</p>
               <p className="text-xs text-muted-foreground">Conferência de notas da carga</p>
             </div>
