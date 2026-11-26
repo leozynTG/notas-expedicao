@@ -37,6 +37,7 @@ function Index() {
   const [zip, setZip] = useState<File | null>(null);
   const [mapa, setMapa] = useState<File | null>(null);
   const [processando, setProcessando] = useState(false);
+  const [status, setStatus] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [resultado, setResultado] = useState<ResultadoCarga | null>(null);
   const [arquivos, setArquivos] = useState<Arquivos | null>(null);
@@ -52,7 +53,15 @@ function Index() {
       if (mapa) {
         if (mapa.name.toLowerCase().endsWith(".pdf")) {
           const { lerPaginasPdf } = await import("@/lib/expedicao/pdf-texto");
+          setStatus("Lendo o PDF do mapa analítico…");
           leitura = lerPickingsPdf(await lerPaginasPdf(mapa));
+          if (leitura.pickings.length === 0) {
+            setStatus("PDF sem texto legível: iniciando OCR (pode levar alguns minutos)…");
+            const { lerPickingsOcr } = await import("@/lib/expedicao/ocr");
+            leitura = await lerPickingsOcr(mapa, (i, t) =>
+              setStatus(`OCR do mapa analítico: página ${i} de ${t}`),
+            );
+          }
         } else {
           leitura = lerPickingsTexto(await mapa.text());
         }
@@ -70,6 +79,7 @@ function Index() {
       );
     } finally {
       setProcessando(false);
+      setStatus("");
     }
   }
 
@@ -144,6 +154,9 @@ function Index() {
                 {processando && <Loader2 className="animate-spin" />}
                 {processando ? "Processando…" : "Processar carga"}
               </Button>
+              {processando && status && (
+                <span className="text-sm text-muted-foreground">{status}</span>
+              )}
               {!mapa && zip && (
                 <span className="text-sm text-muted-foreground">
                   Sem o mapa, as notas ficam sem número de picking.

@@ -32,3 +32,14 @@ export async function lerPaginasPdf(arquivo: File): Promise<PaginaPdf[]> {
   }
   return paginas;
 }
+
+/** Abre um PDF (pdf.js carregado sob demanda). */
+export async function abrirPdf(dados: ArrayBuffer | Uint8Array) {
+  const [pdfjs, worker] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+  ]);
+  pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+  const copia = dados instanceof Uint8Array ? dados.slice() : new Uint8Array(dados.slice(0));
+  return pdfjs.getDocument({ data: copia }).promise;
+}

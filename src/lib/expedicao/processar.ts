@@ -142,7 +142,8 @@ export async function processarCarga(
         mensagem: `Pedido(s) ${semNumero.map((p) => p.pedido).join(", ")}: o número do picking não foi encontrado no topo da página.`,
       });
     }
-    const cruzado = cruzarPickings(notas, pickings);
+    if (leitura.avisos) avisos.push(...leitura.avisos);
+    const cruzado = cruzarPickings(notas, pickings, leitura.origem === "ocr");
     const bytesPorArquivo = new Map(notas.map((n) => [n.arquivo, n.bytes]));
     notas = cruzado.notas.map((n) => ({ ...n, bytes: bytesPorArquivo.get(n.arquivo)! }));
     avisos.push(...cruzado.avisos);

@@ -24,7 +24,9 @@ export interface PaginaPdf {
 }
 
 export interface LeituraPickings {
-  origem: "pdf" | "txt";
+  origem: "pdf" | "txt" | "ocr";
+  /** Avisos gerados na leitura (ex.: número de picking suspeito no OCR). */
+  avisos?: Aviso[];
   /** Unique (número + pedido) pairs, in reading order. */
   pickings: Picking[];
   /** True when the file has no readable text at all (e.g. a scanned PDF). */
@@ -163,10 +165,40 @@ export function lerPickings(texto: string): Picking[] {
   return pickings;
 }
 
-/** Fills numeroPicking on every note (any Tipo) by pedido and returns the cross-check warnings. */
+/** Chave tolerante a erros típicos de OCR (O/0, I/1, S/5, B/8, Z/2). */
+export function chaveOcr(s: string): string {
+  return s.toUpperCase().replace(/[OQD]/g, "0").replace(/[IL]/g, "1").replace(/S/g, "5").replace(/B/g, "8").replace(/Z/g, "2");
+}
+
+/** Classes de caracteres que o OCR confunde: 0/O/Q/D, 1/I/L, 2/Z, 5/S/8/B, 9/Y. */
+export function classeOcr(s: string): string {
+  return s.toUpperCase().replace(/[OQD]/g, "0").replace(/[IL]/g, "1").replace(/Z/g, "2").replace(/[S8B]/g, "5").replace(/Y/g, "9");
+}
+
+function lev(a: string, b: string): number {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0]![j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i]![j] = Math.min(d[i - 1]![j]! + 1, d[i]![j - 1]! + 1, d[i - 1]![j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length]![b.length]!;
+}
+
+function docParecido(a: string, b: string): boolean {
+  if (!a || !b) return true;
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  return lev(a, b) <= 3;
+}
+
+/**
+ * Fills numeroPicking on every note (any Tipo) by pedido and returns the cross-check warnings.
+ * tolerante=true (leitura por OCR): casa pedidos com confusões O/0 etc., desempata pelo CNPJ.
+ */
 export function cruzarPickings(
   notas: NotaFiscal[],
   pickings: Picking[],
+  tolerante = false,
 ): { notas: NotaFiscal[]; avisos: Aviso[] } {
   const avisos: Aviso[] = [];
   const porPedido = new Map<string, Picking[]>();
@@ -177,12 +209,48 @@ export function cruzarPickings(
   }
   const pedidosNf = new Set(notas.map((n) => n.pedido.toUpperCase()).filter(Boolean));
 
+  const atribuicao = new Map<NotaFiscal, Picking[]>();
+  if (tolerante) {
+    const docOk = (p: Picking, n: NotaFiscal) => !!p.cnpj && !!n.documento && docParecido(p.cnpj, n.documento);
+    const reclamados = new Set<Picking>();
+    // 1) pedido idêntico + CNPJ compatível
+    for (const n of notas) {
+      if (!n.pedido) continue;
+      const ped = n.pedido.toUpperCase();
+      const t = pickings.filter((p) => p.pedido === ped && docOk(p, n));
+      if (t.length) { atribuicao.set(n, t); t.forEach((p) => reclamados.add(p)); }
+    }
+    // 2) restantes: pedido "parecido" (classes de OCR / 1 erro) + CNPJ compatível, só entre pickings ainda não usados
+    for (const n of notas) {
+      if (!n.pedido || atribuicao.has(n)) continue;
+      const k = classeOcr(n.pedido);
+      const livres = pickings.filter((p) => !reclamados.has(p) && docOk(p, n));
+      let t = livres.filter((p) => classeOcr(p.pedido) === k);
+      if (!t.length) {
+        const dist = livres.map((p) => [lev(classeOcr(p.pedido), k), p] as const).filter(([d]) => d <= 1);
+        const melhor = Math.min(...dist.map(([d]) => d));
+        t = dist.filter(([d]) => d === melhor).map(([, p]) => p);
+        if (new Set(t.map((p) => p.pedido)).size > 1) t = [];
+      }
+      if (t.length) { atribuicao.set(n, t); t.forEach((p) => reclamados.add(p)); }
+    }
+    // 3) sem CNPJ compatível: só pedido equivalente e único (gera aviso de CNPJ divergente)
+    for (const n of notas) {
+      if (!n.pedido || atribuicao.has(n)) continue;
+      const k = classeOcr(n.pedido);
+      const t = pickings.filter((p) => !reclamados.has(p) && classeOcr(p.pedido) === k);
+      if (t.length === 1) atribuicao.set(n, t);
+    }
+  }
+
   const saida = notas.map((n) => {
     const nota = { ...n, numeroPicking: "" };
-    const achados = nota.pedido ? (porPedido.get(nota.pedido.toUpperCase()) ?? []) : [];
+    let achados = nota.pedido ? (porPedido.get(nota.pedido.toUpperCase()) ?? []) : [];
+    if (tolerante && nota.pedido) achados = atribuicao.get(n) ?? [];
 
     for (const p of achados) {
-      if (p.cnpj && nota.documento && p.cnpj !== nota.documento) {
+      const diverge = tolerante ? !docParecido(p.cnpj, nota.documento) : p.cnpj !== nota.documento;
+      if (p.cnpj && nota.documento && diverge) {
         avisos.push({
           categoria: "CNPJ divergente",
           nivel: "erro",
@@ -226,8 +294,9 @@ export function cruzarPickings(
     return nota;
   });
 
+  const usados = new Set<Picking>(Array.from(atribuicao.values()).flat());
   for (const [pedido, lista] of porPedido) {
-    if (!pedidosNf.has(pedido)) {
+    if (!pedidosNf.has(pedido) && !(tolerante && lista.every((p) => usados.has(p)))) {
       avisos.push({
         categoria: "Picking sem NF",
         nivel: "info",

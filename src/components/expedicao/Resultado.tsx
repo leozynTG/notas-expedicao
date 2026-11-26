@@ -46,7 +46,7 @@ function ConferenciaPickings({
   mapa: NonNullable<ResultadoCarga["mapa"]>;
   pedidosNf: Set<string>;
 }) {
-  const arquivo = mapa.origem === "pdf" ? "PDF" : ".txt";
+  const arquivo = mapa.origem === "txt" ? ".txt" : mapa.origem === "ocr" ? "PDF (por OCR)" : "PDF";
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-semibold text-foreground">
