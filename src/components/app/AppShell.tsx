@@ -8,8 +8,8 @@ import { useEu } from "@/hooks/use-eu";
 import { cn } from "@/lib/utils";
 
 const ABA =
-  "inline-flex items-center gap-2 border-b-2 border-transparent px-1 pb-3 pt-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground";
-const ABA_ATIVA = "border-primary text-foreground";
+  "inline-flex items-center gap-2 border-b-[3px] border-transparent px-1 pb-3 pt-1 text-xs font-semibold uppercase tracking-wider text-blue-100/80 transition-colors hover:text-white";
+const ABA_ATIVA = "border-brand-yellow text-white";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { data: eu, isLoading } = useEu();
@@ -25,19 +25,19 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b bg-card/80 backdrop-blur">
+      <header className="border-b-4 border-brand-yellow bg-brand-blue text-white">
         <div className="mx-auto max-w-6xl px-5">
           <div className="flex items-center gap-3 py-4">
-            <img src="/logo-cdlog.png" alt="CDlog — Sua entrega sempre na frente" className="h-11 w-auto" />
-            <div className="border-l pl-3">
-              <p className="text-lg font-bold leading-tight tracking-tight text-foreground">Expedição CDLog</p>
-              <p className="text-xs text-muted-foreground">Conferência de notas da carga</p>
+            <img src="/logo-cdlog.png" alt="CDlog — Sua entrega sempre na frente" className="h-12 w-auto rounded-lg bg-white px-3 py-1" />
+            <div>
+              <p className="text-lg font-bold leading-tight tracking-tight text-white">Expedição CDLog</p>
+              <p className="text-xs text-blue-100/80">Conferência de notas da carga</p>
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <span className="hidden max-w-56 truncate text-xs text-muted-foreground sm:block" title={eu?.email}>
+              <span className="hidden max-w-56 truncate text-xs text-blue-100/90 sm:block" title={eu?.email}>
                 {eu?.email}
               </span>
-              <Button variant="outline" size="sm" onClick={sair}>
+              <Button variant="outline" size="sm" className="border-white/50 bg-transparent text-white hover:bg-white/10 hover:text-white" onClick={sair}>
                 <LogOut /> Sair
               </Button>
             </div>
@@ -63,8 +63,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Users className="size-4" /> Usuários
               </Link>
             )}
-            <span className="ml-auto hidden items-center gap-1.5 pb-3 text-xs text-muted-foreground md:flex">
-              <ShieldCheck className="size-4 text-success" />
+            <span className="ml-auto hidden items-center gap-1.5 pb-3 text-xs text-blue-100/80 md:flex">
+              <ShieldCheck className="size-4 text-brand-yellow" />
               XML e PDF não saem do seu computador
             </span>
           </nav>
@@ -84,6 +84,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           children
         )}
       </main>
+      <footer className="mt-10 border-t-4 border-brand-green bg-brand-navy px-5 py-4 text-center text-xs text-blue-100/80">
+        CDLog Logística • Sua entrega sempre na frente
+      </footer>
     </div>
   );
 }

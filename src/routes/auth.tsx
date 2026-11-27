@@ -111,7 +111,7 @@ function AuthPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="card-surface w-full max-w-sm p-7">
+      <div className="card-surface w-full max-w-sm border-t-4 border-t-brand-yellow p-7">
         <div className="mb-6 flex items-center gap-3">
           <img src="/logo-cdlog.png" alt="CDlog" className="h-10 w-auto" />
           <div className="border-l pl-3">

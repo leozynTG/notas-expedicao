@@ -70,59 +70,66 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-green: var(--brand-green);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-warning-foreground: var(--warning-foreground);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-destructive-soft: var(--destructive-soft);
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --shadow-card: var(--shadow-card);
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.982 0.006 85);
-  --foreground: oklch(0.24 0.035 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.035 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.035 250);
-  --primary: oklch(0.41 0.085 248);
-  --primary-foreground: oklch(0.98 0.005 85);
-  --secondary: oklch(0.95 0.012 85);
-  --secondary-foreground: oklch(0.3 0.04 250);
-  --muted: oklch(0.955 0.01 85);
-  --muted-foreground: oklch(0.5 0.025 250);
-  --accent: oklch(0.93 0.025 240);
-  --accent-foreground: oklch(0.3 0.06 248);
+  --radius: 0.75rem;
+  --background: #f4f6fa;
+  --foreground: #14233b;
+  --card: #ffffff;
+  --card-foreground: #14233b;
+  --popover: #ffffff;
+  --popover-foreground: #14233b;
+  --primary: #174079;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eef6;
+  --secondary-foreground: #0f2d57;
+  --muted: #eef2f8;
+  --muted-foreground: #64708a;
+  --accent: #e4ecf8;
+  --accent-foreground: #0f2d57;
   --destructive: oklch(0.56 0.19 27);
-  --destructive-foreground: oklch(0.98 0.005 85);
-  --warning: oklch(0.8 0.13 78);
-  --warning-soft: oklch(0.96 0.045 88);
-  --warning-foreground: oklch(0.42 0.09 65);
-  --success: oklch(0.55 0.11 155);
-  --success-soft: oklch(0.95 0.035 155);
+  --destructive-foreground: #ffffff;
+  --warning: #f8b838;
+  --warning-soft: #fff3d6;
+  --warning-foreground: #6b4600;
+  --success: #1b8a3c;
+  --success-soft: #e4f4e9;
   --destructive-soft: oklch(0.955 0.03 25);
-  --border: oklch(0.9 0.012 85);
-  --input: oklch(0.88 0.014 85);
-  --ring: oklch(0.55 0.08 248);
-  --grid-line: oklch(0.41 0.085 248 / 6%);
-  --shadow-card: 0 1px 2px oklch(0.24 0.035 250 / 6%), 0 8px 24px -12px oklch(0.24 0.035 250 / 14%);
-  --chart-1: oklch(0.41 0.085 248);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.8 0.13 78);
-  --chart-4: oklch(0.55 0.11 155);
+  --border: #dfe5ee;
+  --input: #c9d3e3;
+  --ring: #2a5fa8;
+  --brand-blue: #174079;
+  --brand-navy: #0f2d57;
+  --brand-yellow: #f8b838;
+  --brand-green: #1b8a3c;
+  --shadow-card: 0 6px 18px -10px rgb(23 64 121 / 35%);
+  --chart-1: #174079;
+  --chart-2: #1b8a3c;
+  --chart-3: #f8b838;
+  --chart-4: #2a5fa8;
   --chart-5: oklch(0.56 0.19 27);
-  --sidebar: oklch(0.982 0.006 85);
-  --sidebar-foreground: oklch(0.24 0.035 250);
-  --sidebar-primary: oklch(0.41 0.085 248);
-  --sidebar-primary-foreground: oklch(0.98 0.005 85);
-  --sidebar-accent: oklch(0.95 0.012 85);
-  --sidebar-accent-foreground: oklch(0.3 0.04 250);
-  --sidebar-border: oklch(0.9 0.012 85);
-  --sidebar-ring: oklch(0.55 0.08 248);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14233b;
+  --sidebar-primary: #174079;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9eef6;
+  --sidebar-accent-foreground: #0f2d57;
+  --sidebar-border: #dfe5ee;
+  --sidebar-ring: #2a5fa8;
 }
 
 @layer base {
@@ -134,11 +141,33 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 28px 28px;
   }
+}
+
+/* Identidade visual CDLog (fora de @layer para valer sobre as utilidades). */
+main h1:not(.card-surface h1):not(.folha-print h1) {
+  color: var(--brand-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+main h1:not(.card-surface h1):not(.folha-print h1)::after {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 4px;
+  margin-top: 0.5rem;
+  border-radius: 2px;
+  background: var(--brand-yellow);
+}
+main thead th:not(.folha-print *) {
+  background: var(--brand-blue);
+  color: #fff;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+main tbody tr:nth-child(even):not(.folha-print *) {
+  background: #f8fafd;
 }
 
 @utility card-surface {
