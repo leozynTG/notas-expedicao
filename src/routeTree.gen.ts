@@ -10,12 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as DefinirSenhaRouteImport } from './routes/definir-senha'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedCteRouteImport } from './routes/_authenticated/cte'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedUsuariosRouteImport } from './routes/_authenticated/usuarios'
 import { Route as AuthenticatedHistoricoIndexRouteImport } from './routes/_authenticated/historico.index'
 import { Route as AuthenticatedHistoricoIdRouteImport } from './routes/_authenticated/historico.$id'
 import { Route as AuthenticatedRecebimentoIndexRouteImport } from './routes/_authenticated/recebimento.index'
@@ -24,16 +21,6 @@ import { Route as AuthenticatedRecebimentoNovoRouteImport } from './routes/_auth
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DefinirSenhaRoute = DefinirSenhaRouteImport.update({
-  id: '/definir-senha',
-  path: '/definir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -49,11 +36,6 @@ const AuthenticatedCteRoute = AuthenticatedCteRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedUsuariosRoute = AuthenticatedUsuariosRouteImport.update({
-  id: '/usuarios',
-  path: '/usuarios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHistoricoIndexRoute =
@@ -89,11 +71,8 @@ const AuthenticatedRecebimentoNovoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/auth': typeof AuthRoute
-  '/definir-senha': typeof DefinirSenhaRoute
   '/cte': typeof AuthenticatedCteRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/historico/$id': typeof AuthenticatedHistoricoIdRoute
   '/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
   '/recebimento/novo': typeof AuthenticatedRecebimentoNovoRoute
@@ -101,11 +80,8 @@ export interface FileRoutesByFullPath {
   '/recebimento/': typeof AuthenticatedRecebimentoIndexRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRoute
-  '/definir-senha': typeof DefinirSenhaRoute
   '/cte': typeof AuthenticatedCteRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/usuarios': typeof AuthenticatedUsuariosRoute
   '/': typeof AuthenticatedIndexRoute
   '/historico/$id': typeof AuthenticatedHistoricoIdRoute
   '/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
@@ -116,11 +92,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
-  '/definir-senha': typeof DefinirSenhaRoute
   '/_authenticated/cte': typeof AuthenticatedCteRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/usuarios': typeof AuthenticatedUsuariosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/historico/$id': typeof AuthenticatedHistoricoIdRoute
   '/_authenticated/recebimento/$id': typeof AuthenticatedRecebimentoIdRoute
@@ -132,11 +105,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth'
-    | '/definir-senha'
     | '/cte'
     | '/dashboard'
-    | '/usuarios'
     | '/historico/$id'
     | '/recebimento/$id'
     | '/recebimento/novo'
@@ -144,11 +114,8 @@ export interface FileRouteTypes {
     | '/recebimento/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/auth'
-    | '/definir-senha'
     | '/cte'
     | '/dashboard'
-    | '/usuarios'
     | '/'
     | '/historico/$id'
     | '/recebimento/$id'
@@ -158,11 +125,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
-    | '/auth'
-    | '/definir-senha'
     | '/_authenticated/cte'
     | '/_authenticated/dashboard'
-    | '/_authenticated/usuarios'
     | '/_authenticated/'
     | '/_authenticated/historico/$id'
     | '/_authenticated/recebimento/$id'
@@ -173,8 +137,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
-  DefinirSenhaRoute: typeof DefinirSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,20 +146,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/definir-senha': {
-      id: '/definir-senha'
-      path: '/definir-senha'
-      fullPath: '/definir-senha'
-      preLoaderRoute: typeof DefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -219,13 +167,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/usuarios': {
-      id: '/_authenticated/usuarios'
-      path: '/usuarios'
-      fullPath: '/usuarios'
-      preLoaderRoute: typeof AuthenticatedUsuariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/historico/': {
@@ -269,7 +210,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCteRoute: typeof AuthenticatedCteRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedUsuariosRoute: typeof AuthenticatedUsuariosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedHistoricoIdRoute: typeof AuthenticatedHistoricoIdRoute
   AuthenticatedRecebimentoIdRoute: typeof AuthenticatedRecebimentoIdRoute
@@ -281,7 +221,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCteRoute: AuthenticatedCteRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedUsuariosRoute: AuthenticatedUsuariosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedHistoricoIdRoute: AuthenticatedHistoricoIdRoute,
   AuthenticatedRecebimentoIdRoute: AuthenticatedRecebimentoIdRoute,
@@ -295,8 +234,6 @@ const AuthenticatedRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
-  DefinirSenhaRoute: DefinirSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

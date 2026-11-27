@@ -7,8 +7,7 @@ import { AppShell } from "@/components/app/AppShell";
 import { FormRecebimento } from "@/components/recebimento/FormRecebimento";
 import { formDeRegistro, formVazio, hojeIso, paraRegistro, type Form } from "@/lib/recebimento/dados";
 import { recebimentoQuery } from "@/lib/recebimento/consultas";
-import { supabase } from "@/integrations/supabase/client";
-import { useEu } from "@/hooks/use-eu";
+import { criarRecebimento } from "@/lib/api.functions";
 
 export const Route = createFileRoute("/_authenticated/recebimento/novo")({
   validateSearch: (s: Record<string, unknown>): { copiar?: string } =>
@@ -30,24 +29,16 @@ function NovoRecebimento() {
   const { copiar } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: eu } = useEu();
   const [salvando, setSalvando] = useState(false);
   const origem = useQuery({ ...recebimentoQuery(copiar ?? ""), enabled: !!copiar });
 
   async function salvar(f: Form) {
     setSalvando(true);
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth.user?.id ?? eu?.id ?? null;
-      const { data, error } = await supabase
-        .from("recebimentos")
-        .insert({ ...paraRegistro(f), criado_por: uid, criado_por_email: auth.user?.email ?? eu?.email ?? "" })
-        .select("id")
-        .single();
-      if (error) throw error;
+      const id = await criarRecebimento({ data: { registro: paraRegistro(f) as unknown as Record<string, unknown> } });
       await qc.invalidateQueries({ queryKey: ["recebimentos"] });
       toast.success("Recebimento salvo.");
-      navigate({ to: "/recebimento/$id", params: { id: data.id } });
+      navigate({ to: "/recebimento/$id", params: { id } });
     } catch (e) {
       console.error(e);
       toast.error("Não foi possível salvar. O que você digitou continua na tela; tente de novo.");

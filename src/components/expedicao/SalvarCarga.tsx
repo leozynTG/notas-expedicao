@@ -16,8 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
+import { cargaExistente, salvarCarga } from "@/lib/api.functions";
 import { cargasDistintas, montarCarga, sugerirNumeroCarga } from "@/lib/expedicao/historico";
 import type { NotaComArquivo } from "@/lib/expedicao/processar";
 import { dataHora } from "@/lib/formato";
@@ -38,27 +37,21 @@ export function SalvarCarga({ notas }: { notas: NotaComArquivo[] }) {
 
   async function gravar(substituir: boolean) {
     const { carga, notas: linhas } = montarCarga(numero, notas);
-    const { data, error } = await supabase.rpc("salvar_carga", {
-      _carga: carga as unknown as Json,
-      _notas: linhas as unknown as Json,
-      _substituir: substituir,
-    });
-    if (error) {
-      if (error.message.includes("CARGA_JA_EXISTE")) return "existe" as const;
-      throw error;
+    let id: string;
+    try {
+      id = await salvarCarga({ data: { carga: carga as unknown as Record<string, unknown>, notas: linhas as unknown as Record<string, unknown>[], substituir } });
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("CARGA_JA_EXISTE")) return "existe" as const;
+      throw e;
     }
-    setSalvaId(data as string);
+    setSalvaId(id);
     queryClient.invalidateQueries({ queryKey: ["cargas"] });
     toast.success(`Carga ${carga.numero_carga} salva no histórico.`);
     return "ok" as const;
   }
 
   async function verificarExistente(n: string) {
-    const { data } = await supabase
-      .from("cargas")
-      .select("processada_em, processada_por_email, total_notas")
-      .eq("numero_carga", n)
-      .maybeSingle();
+    const data = await cargaExistente({ data: { numero: n } });
     return data;
   }
 

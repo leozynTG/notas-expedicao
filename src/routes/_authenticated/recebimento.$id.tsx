@@ -13,7 +13,7 @@ import { FormRecebimento } from "@/components/recebimento/FormRecebimento";
 import { Folha } from "@/components/recebimento/Folha";
 import { formDeRegistro, paraRegistro, type Form } from "@/lib/recebimento/dados";
 import { recebimentoQuery } from "@/lib/recebimento/consultas";
-import { supabase } from "@/integrations/supabase/client";
+import { atualizarRecebimento, excluirRecebimento } from "@/lib/api.functions";
 
 export const Route = createFileRoute("/_authenticated/recebimento/$id")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(recebimentoQuery(params.id)),
@@ -55,9 +55,7 @@ function Detalhe() {
   async function salvar(f: Form) {
     setSalvando(true);
     try {
-      const { criado_por: _a, criado_por_email: _b, ...campos } = paraRegistro(f);
-      const { error } = await supabase.from("recebimentos").update(campos).eq("id", id);
-      if (error) throw error;
+      await atualizarRecebimento({ data: { id, registro: paraRegistro(f) as unknown as Record<string, unknown> } });
       await qc.invalidateQueries({ queryKey: ["recebimentos"] });
       toast.success("Alterações salvas.");
       setEditando(false);
@@ -85,8 +83,7 @@ function Detalhe() {
   async function excluir() {
     setExcluindo(true);
     try {
-      const { error } = await supabase.from("recebimentos").delete().eq("id", id);
-      if (error) throw error;
+      await excluirRecebimento({ data: { id } });
       await qc.invalidateQueries({ queryKey: ["recebimentos"] });
       toast.success("Recebimento excluído.");
       navigate({ to: "/recebimento" });

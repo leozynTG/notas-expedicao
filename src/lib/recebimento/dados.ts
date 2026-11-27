@@ -1,4 +1,4 @@
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/lib/db-types";
 import {
   duracaoDescarga, escreverNumBr, finalAntesDoInicio, lerInteiro, lerNumBr, placaValida, type Ocorrencia,
 } from "./regras";
@@ -90,7 +90,7 @@ export function paraRegistro(f: Form): NovoRegistro {
     paletes_total: i(f.paletes_total), paletes_pbr: i(f.paletes_pbr), paletes_chep: i(f.paletes_chep),
     paletes_descartavel: i(f.paletes_descartavel), paletes_quebrados: i(f.paletes_quebrados),
     tem_ocorrencia: f.tem_ocorrencia,
-    ocorrencias: (f.tem_ocorrencia ? f.ocorrencias : []) as unknown as import("@/integrations/supabase/types").Json,
+    ocorrencias: (f.tem_ocorrencia ? f.ocorrencias : []) as unknown as import("@/lib/db-types").Json,
     lanc_kpi: f.lanc_kpi, lanc_controle_paletes: f.lanc_controle_paletes, lanc_email: f.lanc_email,
     conferente: f.conferente.trim(), assinatura_conferente: f.assinatura_conferente,
     assinatura_motorista: f.assinatura_motorista, atualizado_em: new Date().toISOString(),

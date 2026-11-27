@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
-import textos from "./fixtures-apoio.json";
 import { conferirConjunto, montarPagina, montarPaginaApoio, ordenarPaginas } from "@/lib/cte/ordenar";
 
-// Texto real (pdf.js) de um PDF com a NF-e 89054 (2 páginas) e 3 boletos fora de ordem (2/3, 3/3, 1/3).
+// Textos sintéticos no formato do pdf.js: NF-e 89054 (2 páginas) e 3 boletos fora de ordem (2/3, 3/3, 1/3).
+const CHAVE = "42261109639440000320550010000890541918692067";
+const danfe = (fl: number) => `DANFE Documento Auxiliar CHAVE DE ACESSO ${CHAVE.replace(/(\d{4})/g, "$1 ").trim()} Nº 000.089.054 - FL ${fl}/2`;
+const boleto = (n: number) =>
+  `Local de Pagamento Vencimento 23/12/2026 Data do Documento Numero do Documento Espécie DOC 25/11/2026 89054 ${n}/3 dm N 25/11/2026`;
+const textos: string[] = [danfe(1), danfe(2), boleto(2), boleto(3), boleto(1)];
 const apoio = (t: string[]) => t.map((x, i) => montarPaginaApoio(0, "nota_boletos.pdf", i + 1, x));
 
 describe("NF-e e boletos junto com CTe", () => {
   it("reconhece DANFE (2 páginas) e boletos com a parcela", () => {
-    const p = apoio(textos as string[]);
+    const p = apoio(textos);
     expect(p.map((x) => x.tipo)).toEqual(["nfe", "nfe", "boleto", "boleto", "boleto"]);
     expect(p.map((x) => x.notas[0])).toEqual([89054, 89054, 89054, 89054, 89054]);
     expect(p.slice(2).map((x) => x.parcela)).toEqual([
@@ -19,7 +23,7 @@ describe("NF-e e boletos junto com CTe", () => {
 
   it("ordena CTe → NF-e → boleto 1, 2, 3 por nota", () => {
     const cte = (nota: number, pg: number) => ({ ...montarPagina(1, "cte.pdf", pg, ""), notas: [nota], chaves: ["x"] });
-    const todas = [cte(90000, 1), ...apoio(textos as string[]).map((x) => ({ ...x, arquivo: 2 })), cte(89054, 2)];
+    const todas = [cte(90000, 1), ...apoio(textos).map((x) => ({ ...x, arquivo: 2 })), cte(89054, 2)];
     const ordem = ordenarPaginas(todas).map((x) => `${x.notas[0]}-${x.tipo}${x.parcela ? x.parcela.n : ""}`);
     expect(ordem).toEqual([
       "89054-cte", "89054-nfe", "89054-nfe", "89054-boleto1", "89054-boleto2", "89054-boleto3", "90000-cte",
@@ -31,7 +35,7 @@ describe("NF-e e boletos junto com CTe", () => {
   });
 
   it("avisa boleto faltando", () => {
-    const p = apoio(textos as string[]).filter((x) => x.parcela?.n !== 3);
+    const p = apoio(textos).filter((x) => x.parcela?.n !== 3);
     expect(conferirConjunto(p)).toContain("Nota 89054: faltam os boletos 3/3.");
   });
 

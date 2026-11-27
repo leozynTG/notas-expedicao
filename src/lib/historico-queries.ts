@@ -1,50 +1,28 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { lerDashboard } from "@/lib/expedicao/dashboard";
+import { buscarCargas, dashboardCargas, lerCarga } from "@/lib/api.functions";
+import type { Database } from "@/lib/db-types";
+
+type Carga = Database["public"]["Tables"]["cargas"]["Row"];
+type Nota = Database["public"]["Tables"]["notas"]["Row"];
 
 export const cargasQuery = (termo: string) =>
   queryOptions({
     queryKey: ["cargas", "lista", termo],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("buscar_cargas", { _termo: termo });
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: async () => (await buscarCargas({ data: { termo } })) as unknown as Carga[],
   });
 
 export const cargaQuery = (id: string) =>
   queryOptions({
     queryKey: ["cargas", "detalhe", id],
     queryFn: async () => {
-      const { data: carga, error } = await supabase.from("cargas").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      if (!carga) return null;
-      const notas = [];
-      const LOTE = 1000;
-      for (let de = 0; ; de += LOTE) {
-        const { data, error: e2 } = await supabase
-          .from("notas")
-          .select("*")
-          .eq("carga_id", id)
-          .order("id")
-          .range(de, de + LOTE - 1);
-        if (e2) throw e2;
-        notas.push(...(data ?? []));
-        if (!data || data.length < LOTE) break;
-      }
-      return { carga, notas };
+      const r = (await lerCarga({ data: { id } })) as unknown as { carga: Carga; notas: Nota[] } | null;
+      return r;
     },
   });
 
 export const dashboardQuery = (de: string | null, ate: string | null) =>
   queryOptions({
     queryKey: ["cargas", "dashboard", de, ate],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("dashboard_cargas", {
-        _de: de as string,
-        _ate: ate as string,
-      });
-      if (error) throw error;
-      return lerDashboard(data);
-    },
+    queryFn: async () => lerDashboard(await dashboardCargas({ data: { de, ate } })),
   });

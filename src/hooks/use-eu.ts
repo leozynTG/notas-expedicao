@@ -1,22 +1,10 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
+/** Sem login: o sistema roda só na rede da empresa. */
 export const euQuery = queryOptions({
   queryKey: ["eu"],
-  queryFn: async () => {
-    const { data } = await supabase.auth.getUser();
-    const user = data.user;
-    if (!user) return null;
-    const { data: papeis } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
-    const roles = (papeis ?? []).map((p) => p.role);
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      isAdmin: roles.includes("admin"),
-      isMembro: roles.length > 0,
-    };
-  },
-  staleTime: 60_000,
+  queryFn: async () => ({ id: "local", email: "", isAdmin: true, isMembro: true }),
+  staleTime: Infinity,
 });
 
 export function useEu() {

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AppShell } from "@/components/app/AppShell";
 import { TabelaNotas } from "@/components/expedicao/TabelaNotas";
-import { supabase } from "@/integrations/supabase/client";
+import { excluirCarga } from "@/lib/api.functions";
 import { cargaQuery } from "@/lib/historico-queries";
 import { linhasDoHistorico } from "@/lib/expedicao/historico";
 import { brl, dataHora, kg } from "@/lib/formato";
@@ -107,9 +107,15 @@ function DetalheCarga() {
 
   async function excluir() {
     setExcluindo(true);
-    const { error } = await supabase.from("cargas").delete().eq("id", carga.id);
+    let falhou = false;
+    try {
+      await excluirCarga({ data: { id: carga.id } });
+    } catch (e) {
+      console.error(e);
+      falhou = true;
+    }
     setExcluindo(false);
-    if (error) {
+    if (falhou) {
       toast.error("Não foi possível excluir a carga.");
       return;
     }
